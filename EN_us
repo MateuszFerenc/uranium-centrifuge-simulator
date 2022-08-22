@@ -1,0 +1,9 @@
+.. EN_us language file
+.. file format - #parameter# text #
+.. '#' can be escaped '\#'
+.. '#' starts and ends parameter placeholder, and also informs about end-of-line (EOL)
+.. '..' starts single line command, not interpreted
+#sim_title# Uranium Centrifuge Simulator #
+#lsim# Launch Simulator #
+#wdocu# Wiew documentation #
+#siminfo# Simulator infos:\nDesign and programming: Mateusz Ferenc\nVersion: {0}\nRelease date: {1}
