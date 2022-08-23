@@ -2,6 +2,9 @@ import tkinter as tk
 from tkinter import ttk
 
 sim_background_color = "#AAAAAA"
+button_background_color = "#999999"
+checkbox_background_color = "#BBBBBB"
+list_background_color = "#999999"
 sim_title = "Uranium Centrifuge Simulator"
 sim_windows_dimensions = "800x500"
 
