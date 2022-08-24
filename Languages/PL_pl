@@ -3,3 +3,11 @@
 .. '#' znak końca parametru
 .. '..' rozpoczyna jednoliniowy komentarz, nie interpretowany
 .. '{}' używany do formatowania ciągu znaków
+simtitle#Symulator Wirówki Wzbogacającej Uran
+lsim#Uruchom Symulator
+wdocu#Wyświetl dokumentację
+chlang#Zmień język:
+siminfo0#Informacje o symulatorze:
+siminfo1#Projekt i kod: Mateusz Ferenc
+siminfo2#Wersja: {}
+siminfo3#Data wydania: {}

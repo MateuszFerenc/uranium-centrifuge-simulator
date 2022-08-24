@@ -31,7 +31,7 @@ class LangSupport:
                 print("Fatal error! Could not load any language!")
                 abort()
         try:
-            with open("Languages\{}".format(lang), "r") as lang_data:
+            with open("Languages\{}".format(lang), "r", encoding="utf-8") as lang_data:
                 for line in lang_data:
                     if not line.startswith(".."):
                         split_line = line.strip().split("#", 1)
