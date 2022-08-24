@@ -20,7 +20,7 @@ if __name__ == "__main__":
                 version_data.close()
         except FileNotFoundError:
             pass
-        stable, beta, alfa = 0, 0, 0  # change all to 0, when you figure out how to display them
+        stable, beta, alfa = 0, 0, 0
         stable_max, beta_max, alfa_max = 9, 99, 999
         if len(data) > 0:
             usr_input = ''
@@ -29,7 +29,7 @@ if __name__ == "__main__":
                 if usr_input == 'abort':
                     abort()
             split_line = data['version'].strip().split(".")
-            stable, beta, alfa = int(split_line[0].replace('V', '')), int(split_line[1]), int(split_line[2])
+            stable, beta, alfa = int(split_line[0]), int(split_line[1]), int(split_line[2])
             if usr_input == 'a':
                 if alfa < alfa_max:
                     alfa += 1
@@ -51,7 +51,7 @@ if __name__ == "__main__":
                     print("Reached maximal version!")
                     stable, beta, alfa = 0, 0, 0
         version_data = open("version_status", "w")
-        version_data.write(f"version#V{stable:1n}.{beta:02n}.{alfa:003n}\n")
+        version_data.write(f"version#{stable:1n}.{beta:02n}.{alfa:003n}\n")
         now = datetime.now()
         version_data.write("release_date#{}/{}/{}".format(now.strftime("%d"),
                                                           now.strftime("%m"), now.strftime("%Y")))

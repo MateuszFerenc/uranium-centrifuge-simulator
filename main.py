@@ -7,8 +7,20 @@ checkbox_background_color = "#BBBBBB"
 list_background_color = "#999999"
 sim_title = "Uranium Centrifuge Simulator"
 sim_windows_dimensions = "800x500"
-sim_release_date = "24/08/2022"
-sim_version = "V0.00.005.2408_22"
+
+try:
+    with open("version_status", "r") as version_data:
+        data = {}
+        for line in version_data:
+            split_line = line.strip().split("#", 1)
+            data[split_line[0]] = split_line[1]
+        version_data.close()
+        sim_version = data['version']
+        sim_release_date = data['release_date']
+except FileNotFoundError:
+    sim_version = "Not specified"
+    sim_release_date = "Not specified"
+
 
 languages = LangSupport()
 
