@@ -28,7 +28,6 @@ languages = LangSupport()
 class MainContainer(Tk):
     def __init__(self):
         super().__init__()
-
         self.title(sim_title)
         self.geometry(sim_windows_dimensions)
         self.resizable(False, False)
