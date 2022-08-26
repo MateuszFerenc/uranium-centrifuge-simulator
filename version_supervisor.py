@@ -12,7 +12,7 @@ class VersionSupervisor:
         self.stable_max, self.beta_max, self.alfa_max = 9, 99, 999
 
     def run_cli(self, script):
-        system(script)
+        system("py " + script)
         usr_input = input("Does this version of project work? (if yes, update project version with specified type)")
         if usr_input.lower() in ("y", "yes", "yeah", "yep"):
             self.read_version()
@@ -26,7 +26,9 @@ class VersionSupervisor:
             self.update_version()
 
     def run_gui(self, script):
-        system(script)
+        vs = GUI()
+        system("py " + script)
+        vs.run()
 
     def read_version(self):
         self.data = {}
@@ -87,7 +89,34 @@ class GUI(object):
 
         self.frame = Frame(self.root)
         self.root.label0 = Label(self.frame, text="Does this version of project work?")
+        self.root.button0 = Button(self.frame, text="Yes")
+        self.root.button1 = Button(self.frame, text="No")
+        self.root.label1 = Label(self.frame, text="Select release type:")
+        self.root.button2 = Button(self.frame, text="Stable")
+        self.root.button3 = Button(self.frame, text="Beta")
+        self.root.button4 = Button(self.frame, text="Alfa")
         self.root.label0.grid(row=0)
+        self.root.button0.grid(row=1, column=0)
+        self.root.button1.grid(row=1, column=1)
+        self.root.button0.config(command=lambda: self.version_check(self, True))
+        self.root.button1.config(command=lambda: self.version_check(self, False))
+        self.root.label1.grid(row=2)
+        self.root.button2.grid(row=3, column=0)
+        self.root.button3.grid(row=3, column=1)
+        self.root.button4.grid(row=3, column=2)
+        self.root.button2.config(command=lambda: self.incr_version("s"), state="disabled")
+        self.root.button3.config(command=lambda: self.incr_version("b"), state="disabled")
+        self.root.button4.config(command=lambda: sself.incr_version("a"), state="disabled")
+
+    def run(self):
+        self.root.mainloop()
+
+    def version_check(self, root, selection):
+        root.button0.config(state="disable")
+        root.button1.config(state="disable")
+
+    def incr_version(self, version):
+        pass
 
 
 def help_cli():
