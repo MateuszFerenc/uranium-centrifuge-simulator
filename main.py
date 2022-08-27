@@ -6,7 +6,8 @@ button_background_color = "#999999"
 checkbox_background_color = "#BBBBBB"
 list_background_color = "#999999"
 sim_title = "Uranium Centrifuge Simulator"
-sim_windows_dimensions = "800x500"
+window_x = 800
+window_y = 500
 
 try:
     with open("version_status", "r") as version_data:
@@ -29,9 +30,12 @@ class MainContainer(Tk):
     def __init__(self):
         super().__init__()
         self.title(sim_title)
-        self.geometry(sim_windows_dimensions)
+        center_x = int(self.winfo_screenwidth() / 2 - window_x / 2)
+        center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
+        self.geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
         self.resizable(False, False)
         self.configure(bg=sim_background_color)
+        self.attributes("-topmost", 1)
 
         mywindow = Frame(self)
         mywindow.pack(side="top", fill="both", expand=True)
@@ -58,8 +62,8 @@ class StartWindow(Frame):
         Frame.__init__(self, parent)
         self.controller = controller
         self.parent = parent
-        self.buttons_frame = MainButtonsFrame(self)
-        self.text_frame = MainInfoFrame(self)
+        self.buttons_frame = StartButtonsFrame(self)
+        self.text_frame = StartInfoFrame(self)
         self.create_ui()
 
     def create_ui(self):
@@ -71,12 +75,17 @@ class StartWindow(Frame):
         self.text_frame.update_ui()
 
 
-class MainInfoFrame(Frame):
+class StartInfoFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
         self.columnconfigure(0, weight=1)
         self.columnconfigure(1, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
+        self.rowconfigure(4, weight=1)
         self.label0 = Label(self, text="")
         self.label1 = Label(self, text="")
         self.label2 = Label(self, text="")
@@ -101,16 +110,20 @@ class MainInfoFrame(Frame):
         self.label4.configure(text=languages.get_text('siminfo3').format(sim_release_date))
 
 
-class MainButtonsFrame(Frame):
+class StartButtonsFrame(Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.button0 = Button(self, text="")
+        self.button0 = Button(self, text="", command=lambda: self.parent.controller.show_frame('InputsWindow'))
         self.button1 = Button(self, text="")
         self.label0 = Label(self, text="")
         self.lang_list = languages.get_languages()
         self.listbox0 = Listbox(self, selectmode="SINGLE", height=1 * len(self.lang_list))
         self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+        self.rowconfigure(1, weight=1)
+        self.rowconfigure(2, weight=1)
+        self.rowconfigure(3, weight=1)
 
         self.create_ui()
         self.update_ui()
@@ -139,10 +152,31 @@ class InputsWindow(Frame):
     def __init__(self, parent, controller):
         Frame.__init__(self, parent)
         self.controller = controller
+        self.input_buttons = InputsButtonsFrame(self)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
         self.create_ui()
 
     def create_ui(self):
-        pass
+        self.input_buttons.grid(row=0, column=0)
+
+
+class InputsButtonsFrame(Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.parent = parent
+        self.button0 = Button(self, text="", command=lambda: self.parent.controller.show_frame('StartWindow'))
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        self.create_ui()
+        self.update_ui()
+
+    def create_ui(self):
+        self.button0.grid(column=0, row=0)
+
+    def update_ui(self):
+        self.button0.configure(text=languages.get_text('winstart'))
 
 
 class ControllersWindow(Frame):

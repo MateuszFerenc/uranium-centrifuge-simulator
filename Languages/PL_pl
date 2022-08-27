@@ -11,3 +11,8 @@ siminfo0#Informacje o symulatorze:
 siminfo1#Projekt i kod: Mateusz Ferenc
 siminfo2#Wersja: {}
 siminfo3#Data wydania: {}
+winstart#Powrót do strony startowej
+wininputs#Wejścia
+wincontr#Regulator
+winout#Dane
+winchart#Wykresy
