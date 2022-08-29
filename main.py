@@ -54,6 +54,7 @@ class MainContainer(Tk):
 
     def show_frame(self, window_name):
         frame = self.openwindows[window_name]
+        frame.update_frames()
         frame.tkraise()
 
 
@@ -159,6 +160,9 @@ class InputsWindow(Frame):
 
     def create_ui(self):
         self.input_buttons.grid(row=0, column=0)
+
+    def update_frames(self):
+        self.input_buttons.update_ui()
 
 
 class InputsButtonsFrame(Frame):

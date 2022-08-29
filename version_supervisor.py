@@ -26,9 +26,20 @@ class VersionSupervisor:
             self.update_version()
 
     def run_gui(self, script):
-        v_s = GUI()
+        vsgui = GUI()
         system("py " + script)
-        v_s.run(self)
+        vsgui.run(self)
+
+    @staticmethod
+    def help_cli():
+        print("Format:\n{} -hc <script.py>")
+        print("Simple version update supervisor, when parsed script ends executions, "
+              "script asks about decision about version.")
+        print("Options:\n"
+              "     -c : run in CLI mode, if not specified run in GUI mode\n"
+              "     -h : print this help\n"
+              "     <script.py> : python (only) script to execute and supervise version\n"
+              "Copyright (2022) Mateusz Ferenc")
 
     def read_version(self):
         self.data = {}
@@ -63,7 +74,7 @@ class VersionSupervisor:
                     self.stable += 1
                     self.alfa, self.beta = 0, 0
                 else:
-                    print("Reached maximal version!")
+                    print("Reached max version!")
                     self.stable, self.beta, self.alfa = 0, 0, 0
 
     def update_version(self):
@@ -89,46 +100,39 @@ class GUI(Tk):
         self.configure(bg="#999999")
         self.attributes("-topmost", 1)
 
-        self.columnconfigure(0, weight=1)
-        self.columnconfigure(1, weight=1)
-        self.columnconfigure(2, weight=1)
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-        self.rowconfigure(2, weight=1)
-        self.rowconfigure(3, weight=1)
-        self.rowconfigure(4, weight=1)
-        self.rowconfigure(4, weight=1)
-
         self.frame = Frame(self)
-        self.frame.label0 = Label(self, text="Does this version of project work?", bg="#999999")
+        self.frame.label0 = Label(self, text="Does this version of project work?",
+                                  bg="#999999", fg="#FFFFFF", font=("Helvetica", 12))
         self.frame.button0 = Button(self, text="Yes", bg="#AAAAAA", command=lambda: self.version_check('yes'),
-                                    width=5, relief="ridge", cursor='heart')
+                                    width=5, relief="ridge", cursor='heart', fg="#FFFFFF", font=("Helvetica", 10))
         self.frame.button1 = Button(self, text="No", bg="#AAAAAA", command=lambda: self.version_check('no'),
-                                    width=5, relief="ridge", cursor='pirate')
-        self.frame.label1 = Label(self, text="Current version data:", bg="#999999")
-        self.frame.label2 = Label(self, text="", bg="#999999")
-        self.frame.label3 = Label(self, text="Select release type:", bg="#999999")
+                                    width=5, relief="ridge", cursor='pirate', fg="#FFFFFF", font=("Helvetica", 10))
+        self.frame.label1 = Label(self, text="Current version data:", bg="#999999", fg="#FFFFFF",
+                                  font=("Helvetica", 10))
+        self.frame.label2 = Label(self, text="", bg="#999999", fg="#FFFFFF", font=("Helvetica", 10))
+        self.frame.label3 = Label(self, text="Select release type:", bg="#999999", fg="#FFFFFF",
+                                  font=("Helvetica", 10))
         self.frame.button2 = Button(self, text="Stable", bg="#AAAAAA", command=lambda: self.incr_version("s"),
-                                    state="disabled", width=5, relief="sunken")
+                                    state="disabled", width=5, relief="sunken", fg="#FFFFFF", font=("Helvetica", 10))
         self.frame.button3 = Button(self, text="Beta", bg="#AAAAAA", command=lambda: self.incr_version("b"),
-                                    state="disabled", width=5, relief="sunken")
+                                    state="disabled", width=5, relief="sunken", fg="#FFFFFF", font=("Helvetica", 10))
         self.frame.button4 = Button(self, text="Alfa", bg="#AAAAAA", command=lambda: self.incr_version("a"),
-                                    state="disabled", width=5, relief="sunken")
-        self.frame.label0.grid(row=0, column=1)
-        self.frame.button0.grid(row=1, column=0, sticky='e')
-        self.frame.button1.grid(row=1, column=2, sticky='w')
-        self.frame.label1.grid(row=2, column=1)
-        self.frame.label2.grid(row=3, column=1)
-        self.frame.label3.grid(row=4, column=1)
-        self.frame.button2.grid(row=5, column=0, sticky='e', pady=5)
-        self.frame.button3.grid(row=5, column=1, sticky='s', pady=5)
-        self.frame.button4.grid(row=5, column=2, sticky='w', pady=5)
+                                    state="disabled", width=5, relief="sunken", fg="#FFFFFF", font=("Helvetica", 10))
+        self.frame.label0.place(relx=0, rely=0, relwidth=1)
+        self.frame.button0.place(relx=0.1, rely=0.15, relwidth=0.3)
+        self.frame.button1.place(relx=0.6, rely=0.15, relwidth=0.3)
+        self.frame.label1.place(relx=0, rely=0.3, relwidth=1)
+        self.frame.label2.place(relx=0, rely=0.4, relwidth=1)
+        self.frame.label3.place(relx=0, rely=0.6, relwidth=1)
+        self.frame.button2.place(relx=0.1, rely=0.75, relwidth=0.2)
+        self.frame.button3.place(relx=0.4, rely=0.75, relwidth=0.2)
+        self.frame.button4.place(relx=0.7, rely=0.75, relwidth=0.2)
 
     def run(self, parent):
         self.parent = parent
         self.parent.read_version()
         self.frame.label2.config(text=f"version : {self.parent.data['version']}\n"
-                                      f"Release date : {self.parent.data['release_date']}")
+                                      f"release date : {self.parent.data['release_date']}")
         self.mainloop()
 
     def version_check(self, selection):
@@ -142,37 +146,32 @@ class GUI(Tk):
             self.destroy()
             exit()
 
-    def incr_version(self, version):
+    def incr_version(self, v):
         self.frame.button2.config(state="disabled")
         self.frame.button3.config(state="disabled")
         self.frame.button4.config(state="disabled")
-        self.parent.count_version(version)
+        self.parent.count_version(v)
         self.parent.update_version()
         self.destroy()
         exit()
 
 
-def help_cli():
-    print("Format:\n{} -hc <script.py>")
-    print("...")
-
-
 if __name__ == "__main__":
-    vs = VersionSupervisor()
+    version = VersionSupervisor()
     if len(argv) == 2:
         if argv[1] == '-h':
-            help_cli()
+            version.help_cli()
         elif argv[1].endswith(".py"):
-            vs.run_gui(argv[1])
+            version.run_gui(argv[1])
         else:
             print("Wrong argument: {}".format(argv[1]))
     elif len(argv) == 3:
         if '-h' in (argv[1], argv[2]):
-            help_cli()
+            version.help_cli()
         elif '-c' in (argv[1], argv[2]):
             for arg in (argv[1], argv[2]):
                 if arg.endswith(".py"):
-                    vs.run_cli(arg)
+                    version.run_cli(arg)
         else:
             print("Wrong arguments: {} {}".format(argv[1], argv[2]))
     else:
