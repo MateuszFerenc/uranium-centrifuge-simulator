@@ -12,7 +12,8 @@ class VersionSupervisor:
         self.stable_max, self.beta_max, self.alfa_max = 9, 99, 999
 
     def run_cli(self, script):
-        system("py " + script)
+        if system("py " + script) != 0:
+            exit()
         usr_input = input("Does this version of project work? (if yes, update project version with specified type)\n?")
         if usr_input.lower() in ("y", "yes", "yeah", "yep"):
             self.read_version()
@@ -27,8 +28,9 @@ class VersionSupervisor:
 
     def run_gui(self, script):
         vsgui = GUI()
-        system("py " + script)
-        vsgui.run(self)
+        if system("py " + script) == 0:
+            vsgui.run(self)
+        exit()
 
     @staticmethod
     def help_cli():

@@ -1,4 +1,6 @@
 from tkinter import *
+from tkinter.ttk import *
+
 from lang_support import LangSupport
 
 sim_background_color = "#AAAAAA"
@@ -22,7 +24,6 @@ except FileNotFoundError:
     sim_version = "Not specified"
     sim_release_date = "Not specified"
 
-
 languages = LangSupport()
 
 
@@ -35,36 +36,30 @@ class MainContainer(Tk):
         self.geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
         self.resizable(False, False)
         self.configure(bg=sim_background_color)
-        self.attributes("-topmost", 1)
+        # self.attributes("-topmost", 1)
 
-        mywindow = Frame(self)
-        mywindow.pack(side="top", fill="both", expand=True)
-        mywindow.grid_rowconfigure(0, weight=1)
-        mywindow.grid_columnconfigure(0, weight=1)
-        mywindow.grid_columnconfigure(1, weight=1)
+        notebook = Notebook(self, takefocus=True)
+        notebook.place(rely=0.1, relwidth=1)
 
-        self.openwindows = {}
-        for Window in sim_windows:
-            window_name = Window.__name__
-            frame = Window(parent=mywindow, controller=self)
-            self.openwindows[window_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
-
-        self.show_frame("StartWindow")
-
-    def show_frame(self, window_name):
-        frame = self.openwindows[window_name]
-        frame.update_frames()
-        frame.tkraise()
+        self.notebook_frames = {}
+        for win_frame in sim_windows:
+            frame_name = win_frame.__name__
+            tab = Frame(width=window_x, height=(window_y - (window_y * 0.1)))
+            frame = win_frame(parent=notebook, controller=self, tab=tab)
+            self.notebook_frames[frame_name] = frame
+            # frame.add2notebook(notebook, win_frame)
+            frame.tab.pack(fill="both", expand=True)
+            notebook.add(tab, text='')
 
 
-class StartWindow(Frame):
-    def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+class StartWindow(object):
+    def __init__(self, parent, controller, tab):
+        Frame.__init__(parent)
+        self.tab = tab
         self.controller = controller
         self.parent = parent
-        self.buttons_frame = StartButtonsFrame(self)
-        self.text_frame = StartInfoFrame(self)
+        self.buttons_frame = StartButtonsFrame(self.tab)
+        self.text_frame = StartInfoFrame(self.tab)
         self.create_ui()
 
     def create_ui(self):
@@ -149,13 +144,15 @@ class StartButtonsFrame(Frame):
         self.label0.configure(text=languages.get_text('chlang'))
 
 
-class InputsWindow(Frame):
-    def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+class InputsWindow(object):
+    def __init__(self, parent, controller, tab):
+        Frame.__init__(parent)
+        self.tab = tab
         self.controller = controller
-        self.input_buttons = InputsButtonsFrame(self)
-        self.columnconfigure(0, weight=1)
-        self.rowconfigure(0, weight=1)
+        self.parent = parent
+        self.input_buttons = InputsButtonsFrame(self.tab)
+        self.tab.columnconfigure(0, weight=1)
+        self.tab.rowconfigure(0, weight=1)
         self.create_ui()
 
     def create_ui(self):
@@ -183,9 +180,11 @@ class InputsButtonsFrame(Frame):
         self.button0.configure(text=languages.get_text('winstart'))
 
 
-class ControllersWindow(Frame):
-    def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+class ControllersWindow(object):
+    def __init__(self, parent, controller, tab):
+        Frame.__init__(parent)
+        self.tab = tab
+        self.parent = parent
         self.controller = controller
         self.create_ui()
 
@@ -193,9 +192,11 @@ class ControllersWindow(Frame):
         pass
 
 
-class OutputWindow(Frame):
-    def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+class OutputWindow(object):
+    def __init__(self, parent, controller, tab):
+        Frame.__init__(parent)
+        self.tab = tab
+        self.parent = parent
         self.controller = controller
         self.create_ui()
 
@@ -203,9 +204,10 @@ class OutputWindow(Frame):
         pass
 
 
-class ChartsWindow(Frame):
-    def __init__(self, parent, controller):
-        Frame.__init__(self, parent)
+class ChartsWindow(object):
+    def __init__(self, parent, controller, tab):
+        Frame.__init__(parent)
+        self.tab = tab
         self.controller = controller
         self.create_ui()
 
