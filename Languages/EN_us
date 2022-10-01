@@ -16,3 +16,14 @@ wininputs#Inputs
 wincontr#Controller
 winout#Output
 winchart#Charts
+filemenu#File
+openfilemenu#Open
+savefilemenu#Save
+exportfilemenu#Export
+importfilemenu#Import
+languagefilemenu#Language
+exitfilemenu#Exit
+infomenu#Info
+versioninfomenu#Version
+developerinfomenu#Developer
+helpinfomenu#Help

@@ -1,5 +1,5 @@
-from tkinter import *
-from tkinter.ttk import *
+import tkinter as tk
+import tkinter.ttk as ttk
 
 from lang_support import LangSupport
 
@@ -27,7 +27,7 @@ except FileNotFoundError:
 languages = LangSupport()
 
 
-class MainContainer(Tk):
+class MainContainer(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title(sim_title)
@@ -36,31 +36,55 @@ class MainContainer(Tk):
         self.geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
         self.resizable(False, False)
         self.configure(bg=sim_background_color)
-        # self.attributes("-topmost", 1)
 
-        notebook = Notebook(self, takefocus=True)
-        notebook.place(rely=0.1, relwidth=1)
+        menubar = tk.Menu(self)
+        self.config(menu=menubar)
+
+        filemenu = tk.Menu(menubar)
+        filemenu.add_command(label="Open")
+        filemenu.add_command(label="Save")
+        filemenu.add_command(label="Export")
+        filemenu.add_command(label="Import")
+        langmenu = tk.Menu(filemenu)
+        for lang in languages.lang_list:
+            langmenu.add_command(label=lang, command=lambda l=lang: self.change_language(l))
+        filemenu.add_cascade(label="Language", menu=langmenu)
+        filemenu.add_separator()
+        filemenu.add_command(label="Exit", command=self.exit)
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        infomenu = tk.Menu(menubar)
+        infomenu.add_command(label="Version")
+        infomenu.add_command(label="Developer")
+        infomenu.add_separator()
+        infomenu.add_command(label="Help")
+        menubar.add_cascade(label="Info", menu=infomenu)
+
+        notebook = ttk.Notebook(self, takefocus=True, height=window_y, width=window_x)
+        notebook.place(rely=0, relwidth=1)
 
         self.notebook_frames = {}
         for win_frame in sim_windows:
-            frame_name = win_frame.__name__
-            tab = Frame(width=window_x, height=(window_y - (window_y * 0.1)))
-            frame = win_frame(parent=notebook, controller=self, tab=tab)
-            self.notebook_frames[frame_name] = frame
-            # frame.add2notebook(notebook, win_frame)
-            frame.tab.pack(fill="both", expand=True)
-            notebook.add(tab, text='')
+            frame = win_frame(parent=self)
+            frame_name = frame.name
+            frame.pack(expand=False)
+            notebook.add(frame, text=frame_name)
+            # self.notebook_frames[frame_name] = tab
+
+    def change_language(self, lang):
+        print(lang)
+
+    def exit(self):
+        self.quit()
 
 
-class StartWindow(object):
-    def __init__(self, parent, controller, tab):
-        Frame.__init__(parent)
-        self.tab = tab
-        self.controller = controller
+class StartWindow(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.name = "Start"
         self.parent = parent
-        self.buttons_frame = StartButtonsFrame(self.tab)
-        self.text_frame = StartInfoFrame(self.tab)
-        self.create_ui()
+        label = ttk.Label(self, text="Tab 0")
+        label.pack()
 
     def create_ui(self):
         self.buttons_frame.grid(column=0, row=0)
@@ -71,7 +95,7 @@ class StartWindow(object):
         self.text_frame.update_ui()
 
 
-class StartInfoFrame(Frame):
+"""class StartInfoFrame(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
@@ -82,11 +106,11 @@ class StartInfoFrame(Frame):
         self.rowconfigure(2, weight=1)
         self.rowconfigure(3, weight=1)
         self.rowconfigure(4, weight=1)
-        self.label0 = Label(self, text="")
-        self.label1 = Label(self, text="")
-        self.label2 = Label(self, text="")
-        self.label3 = Label(self, text="")
-        self.label4 = Label(self, text="")
+        self.label0 = ttk.Label(self, text="")
+        self.label1 = ttk.Label(self, text="")
+        self.label2 = ttk.Label(self, text="")
+        self.label3 = ttk.Label(self, text="")
+        self.label4 = ttk.Label(self, text="")
 
         self.create_ui()
         self.update_ui()
@@ -106,15 +130,15 @@ class StartInfoFrame(Frame):
         self.label4.configure(text=languages.get_text('siminfo3').format(sim_release_date))
 
 
-class StartButtonsFrame(Frame):
+class StartButtonsFrame(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.button0 = Button(self, text="", command=lambda: self.parent.controller.show_frame('InputsWindow'))
-        self.button1 = Button(self, text="")
-        self.label0 = Label(self, text="")
+        self.button0 = ttk.Button(self, text="", command=lambda: self.parent.controller.show_frame('InputsWindow'))
+        self.button1 = ttk.Button(self, text="")
+        self.label0 = ttk.Label(self, text="")
         self.lang_list = languages.get_languages()
-        self.listbox0 = Listbox(self, selectmode="SINGLE", height=1 * len(self.lang_list))
+        self.listbox0 = tk.Listbox(self, selectmode="SINGLE", height=1 * len(self.lang_list))
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
@@ -142,18 +166,16 @@ class StartButtonsFrame(Frame):
         self.button0.configure(text=languages.get_text('lsim'))
         self.button1.configure(text=languages.get_text('wdocu'))
         self.label0.configure(text=languages.get_text('chlang'))
+"""
 
 
-class InputsWindow(object):
-    def __init__(self, parent, controller, tab):
-        Frame.__init__(parent)
-        self.tab = tab
-        self.controller = controller
+class InputsWindow(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.name = "Inputs"
         self.parent = parent
-        self.input_buttons = InputsButtonsFrame(self.tab)
-        self.tab.columnconfigure(0, weight=1)
-        self.tab.rowconfigure(0, weight=1)
-        self.create_ui()
+        label = ttk.Label(self, text="Tab 1")
+        label.pack()
 
     def create_ui(self):
         self.input_buttons.grid(row=0, column=0)
@@ -162,11 +184,11 @@ class InputsWindow(object):
         self.input_buttons.update_ui()
 
 
-class InputsButtonsFrame(Frame):
+"""class InputsButtonsFrame(ttk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         self.parent = parent
-        self.button0 = Button(self, text="", command=lambda: self.parent.controller.show_frame('StartWindow'))
+        self.button0 = ttk.Button(self, text="", command=lambda: self.parent.controller.show_frame('StartWindow'))
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
 
@@ -178,38 +200,43 @@ class InputsButtonsFrame(Frame):
 
     def update_ui(self):
         self.button0.configure(text=languages.get_text('winstart'))
+"""
 
 
-class ControllersWindow(object):
-    def __init__(self, parent, controller, tab):
-        Frame.__init__(parent)
-        self.tab = tab
+class ControllersWindow(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.name = "Controllers"
         self.parent = parent
-        self.controller = controller
-        self.create_ui()
+        label = ttk.Label(self, text="Tab 2")
+        label.pack()
+        # self.create_ui()
 
     def create_ui(self):
         pass
 
 
-class OutputWindow(object):
-    def __init__(self, parent, controller, tab):
-        Frame.__init__(parent)
-        self.tab = tab
+class OutputWindow(tk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.name = "Output"
         self.parent = parent
-        self.controller = controller
-        self.create_ui()
+        label = ttk.Label(self, text="Tab 3")
+        label.pack()
+        # self.create_ui()
 
     def create_ui(self):
         pass
 
 
-class ChartsWindow(object):
-    def __init__(self, parent, controller, tab):
-        Frame.__init__(parent)
-        self.tab = tab
-        self.controller = controller
-        self.create_ui()
+class ChartsWindow(ttk.Frame):
+    def __init__(self, parent):
+        super().__init__(parent)
+        self.name = "Charts"
+        self.parent = parent
+        label = ttk.Label(self, text="Tab 4")
+        label.pack()
+        # self.create_ui()
 
     def create_ui(self):
         pass

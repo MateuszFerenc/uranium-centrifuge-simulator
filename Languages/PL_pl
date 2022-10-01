@@ -16,3 +16,14 @@ wininputs#Wejścia
 wincontr#Regulator
 winout#Dane
 winchart#Wykresy
+filemenu#Plik
+openfilemenu#Otwórz
+savefilemenu#Zapisz
+exportfilemenu#Eksportuj
+importfilemenu#Importuj
+languagefilemenu#Język
+exitfilemenu#Wyjście
+infomenu#Informacje
+versioninfomenu#Wersja
+developerinfomenu#Programista
+helpinfomenu#Pomoc
