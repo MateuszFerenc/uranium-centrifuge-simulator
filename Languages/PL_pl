@@ -6,24 +6,26 @@
 simtitle#Symulator Wirówki Wzbogacającej Uran
 lsim#Uruchom Symulator
 wdocu#Wyświetl dokumentację
-chlang#Zmień język:
-siminfo0#Informacje o symulatorze:
-siminfo1#Projekt i kod: Mateusz Ferenc
-siminfo2#Wersja: {}
-siminfo3#Data wydania: {}
-winstart#Powrót do strony startowej
-wininputs#Wejścia
-wincontr#Regulator
-winout#Dane
-winchart#Wykresy
+simdev#Projekt i kod: Mateusz Ferenc
+simversion#Wersja: {}
+simrelease#Data wydania: {}
+startwindow#Start
+inputswindow#Wejścia
+controllerswindow#Regulator
+outputwindow#Dane
+chartswindow#Wykresy
 filemenu#Plik
 openfilemenu#Otwórz
 savefilemenu#Zapisz
 exportfilemenu#Eksportuj
 importfilemenu#Importuj
 languagefilemenu#Język
+settingsfilemenu#Ustawienia
 exitfilemenu#Wyjście
 infomenu#Informacje
 versioninfomenu#Wersja
 developerinfomenu#Programista
 helpinfomenu#Pomoc
+openfile#Otwórz plik
+savefile#Zapisz plik
+exportfile#Eksportuj dane

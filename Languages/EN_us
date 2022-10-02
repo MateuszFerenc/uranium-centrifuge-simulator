@@ -6,24 +6,26 @@
 simtitle#Uranium Centrifuge Simulator
 lsim#Launch Simulator
 wdocu#Wiew documentation
-chlang#Change language:
-siminfo0#Simulator infos:
-siminfo1#Design and code: Mateusz Ferenc
-siminfo2#Version: {}
-siminfo3#Release date: {}
-winstart#Back to start page
-wininputs#Inputs
-wincontr#Controller
-winout#Output
-winchart#Charts
+simdev#Design and code: Mateusz Ferenc
+simversion#Version: {}
+simrelease#Release date: {}
+startwindow#Start
+inputswindow#Inputs
+controllerswindow#Controller
+outputwindow#Output
+chartswindow#Charts
 filemenu#File
 openfilemenu#Open
 savefilemenu#Save
 exportfilemenu#Export
 importfilemenu#Import
 languagefilemenu#Language
+settingsfilemenu#Settings
 exitfilemenu#Exit
 infomenu#Info
 versioninfomenu#Version
 developerinfomenu#Developer
 helpinfomenu#Help
+openfile#Open File
+savefile#Save file
+exportfile#Export data
