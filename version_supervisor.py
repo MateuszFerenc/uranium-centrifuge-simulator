@@ -83,8 +83,7 @@ class VersionSupervisor:
         version_data = open("version_status", "w")
         version_data.write(f"version#{self.stable:1n}.{self.beta:02n}.{self.alfa:003n}\n")
         now = datetime.now()
-        version_data.write("release_date#{}/{}/{}".format(now.strftime("%d"),
-                                                          now.strftime("%m"), now.strftime("%Y")))
+        version_data.write(f"release_date#{now:%d}/{now:%m}/{now:%Y}")
         version_data.close()
 
 
