@@ -1,8 +1,11 @@
 from sys import exit
-from os import system
+from os import system, mkdir
 import argparse
 from datetime import datetime
 from tkinter import Tk, Label, Button, Frame
+from atexit import register as register_exit
+
+debug_mode = False
 
 
 class VersionSupervisor:
@@ -19,7 +22,8 @@ class VersionSupervisor:
             usr_input = ''
             if len(self.data) > 0:
                 while usr_input not in ('s', 'b', 'a'):
-                    usr_input = input("Select release type (s - stable, b - beta, a - alfa) [abort for cancellation]\n?")
+                    usr_input = input(
+                        "Select release type (s - stable, b - beta, a - alfa) [abort for cancellation]\n?")
                     if usr_input == 'abort':
                         exit()
             self.count_version(usr_input)
@@ -70,7 +74,7 @@ class VersionSupervisor:
         version_data = open("version_status", "w")
         version_data.write(f"version#{self.stable:1n}.{self.beta:02n}.{self.alfa:003n}\n")
         now = datetime.now()
-        version_data.write(f"release_date#{now:%d}/{now:%m}/{now:%Y}")
+        version_data.write(f"release_date#{now.day}/{now.month}/{now.year}")
         version_data.close()
 
 
@@ -78,6 +82,9 @@ class GUI(Tk):
     def __init__(self):
         super().__init__()
         self.parent = None
+        self.frame = None
+
+    def create_root(self):
         self.title("Python project version supervisor")
         window_x = 350
         window_y = 200
@@ -122,6 +129,7 @@ class GUI(Tk):
     def run(self, parent):
         self.parent = parent
         self.parent.read_version()
+        self.create_root()
         self.frame.label2.config(text=f"version : {self.parent.data['version']}\n"
                                       f"release date : {self.parent.data['release_date']}")
         self.mainloop()
@@ -143,6 +151,50 @@ class GUI(Tk):
         exit()
 
 
+class DataLogger:
+    def __init__(self, log_name=None, directory=None):
+        if debug_mode:
+            self.do_log = False
+            return None
+        self.do_log = True
+        self.directory = ""
+        try:
+            mkdir(directory)
+            self.directory = directory + '\\'
+        except FileExistsError:
+            self.directory = directory + '\\'
+        except TypeError:
+            pass
+        try:
+            self.log_name = open(f"{self.directory}{log_name}.log", "a")
+        except Exception as e:
+            print(e)
+            exit()
+        register_exit(self.destroy_logger)
+
+    def config_logger(self, do_log, new_log=None):
+        self.do_log = do_log
+        if new_log is not None:
+            self.log_name.close()
+            try:
+                self.log_name = open(f"{self.directory}{new_log}.log", "a")
+            except Exception as e:
+                print(e)
+                exit()
+
+    def destroy_logger(self):
+        print("logger destroyed!")
+        self.log_name.close()
+
+    def log(self, text, do_print=False):
+        now = datetime.now()
+        log = f"{now.day}/{now.month}/{now.year} {now.hour}:{now.minute:02n}:{now.second:02n}\n{text}\n"
+        if self.do_log and not do_print:
+            self.log_name.write(log)
+        else:
+            print(log)
+
+
 if __name__ == "__main__":
     version = VersionSupervisor()
     parser = argparse.ArgumentParser(description="Script version supervisor Copyright (2022) Mateusz Ferenc")
@@ -153,6 +205,7 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--cli", help="Command Line Interface mode, no GUI (Default GUI mode)",
                         action="store_true")
     args = parser.parse_args()
+    debug_mode = args.debug
     if args.debug:
         print(system("py " + args.script))
     else:

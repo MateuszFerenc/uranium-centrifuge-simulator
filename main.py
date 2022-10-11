@@ -3,6 +3,7 @@ import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
 
 from lang_support import LangSupport
+from version_supervisor import DataLogger
 
 try:
     with open("version_status", "r") as version_data:
@@ -220,5 +221,6 @@ class ChartsWindow(ttk.Frame):
 sim_windows = (StartWindow, InputsWindow, ControllersWindow, OutputWindow, ChartsWindow)
 
 if __name__ == "__main__":
+    dl = DataLogger(__name__, 'logs')
     main = MainContainer()
     main.mainloop()

@@ -1,11 +1,14 @@
 from os import listdir, abort
 from re import match
+from version_supervisor import DataLogger
+
+dl = DataLogger(__name__, 'logs')
 
 
 class LangSupport:
     def __init__(self, directory=None):
         if directory is None:
-            abort()
+            exit(3)
         super().__init__()
         self.name = self.__class__.__name__
         self.lang_list = []
@@ -21,8 +24,8 @@ class LangSupport:
         try:
             files = listdir(self.directory)
         except FileNotFoundError:
-            print(f"<{self.name}>\nFatal error! Directory {self.directory} does not exist")
-            abort()
+            dl.log(f"Fatal error! Directory {self.directory} does not exist")
+            exit(3)
         self.lang_list = []
         for Lang in files:
             if match('[A-Z]{2}_[a-z]{2}', str(Lang)) is not None:  # add only files in name format 'XX_yy'
@@ -35,12 +38,12 @@ class LangSupport:
         if len(self.lang_list):
             if lang not in self.lang_list:
                 self.language = self.lang_list[0]  # selects any available language if selected language is unreachable
-                print(f"<{self.name}>\nWarning! {lang} language not found.")
+                dl.log(f"Warning! {lang} language not found.")
             else:
                 self.language = lang
         else:
-            print(f"<{self.name}>\nFatal error! Languages not indexed!")
-            abort()
+            dl.log(f"Fatal error! Languages not indexed!")
+            exit(3)
         try:
             with open(f"{self.directory}\{self.language}", "r", encoding="utf-8") as lang_data:
                 self.dictionary = {}
@@ -50,8 +53,8 @@ class LangSupport:
                         # and remove escaping
                         self.dictionary[split_line[0]] = split_line[1]  # enter values by keys into dictionary
         except FileNotFoundError:
-            print(f"<{self.name}>\nFatal error! File not found!")
-            abort()
+            dl.log(f"Fatal error! File not found!")
+            exit(3)
         finally:
             lang_data.close()
 
@@ -61,10 +64,10 @@ class LangSupport:
             text = str(self.dictionary[dict_key])  # get text value based on key
         except KeyError:
             if len(self.dictionary):
-                print(f"<{self.name}>\nFatal error! {dict_key} key not found in {self.language} language file.")
+                dl.log(f"Fatal error! {dict_key} key not found in {self.language} language file.")
             else:
-                print(f"<{self.name}>\nFatal error! Language: {self.language} not loaded!")
-            abort()
+                dl.log(f"Fatal error! Language: {self.language} not loaded!")
+            exit(3)
         try:
             text = text.format(*args)   # try to format text with arguments, if any specified
         except IndexError:
@@ -73,8 +76,8 @@ class LangSupport:
 
 
 if __name__ == "__main__":
-    print("Fatal error! This file could not be ran standalone")
-    abort()
+    dl.log("Fatal error! This file could not be ran standalone")
+    exit(3)
 
 # example usage
 # l = LangSupport()
