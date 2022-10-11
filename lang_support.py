@@ -3,17 +3,26 @@ from re import match
 
 
 class LangSupport:
-    def __init__(self):
+    def __init__(self, directory=None):
+        if directory is None:
+            abort()
         super().__init__()
+        self.name = self.__class__.__name__
         self.lang_list = []
         self.language = "EN_us"  # default language
         self.dictionary = {}  # language dictionary
+        self.directory = directory
 
         self.get_languages()  # initialise available languages
         self.set_language(self.language)
 
     def get_languages(self):
-        files = listdir("Languages")
+        files = None
+        try:
+            files = listdir(self.directory)
+        except FileNotFoundError:
+            print(f"<{self.name}>\nFatal error! Directory {self.directory} does not exist")
+            abort()
         self.lang_list = []
         for Lang in files:
             if match('[A-Z]{2}_[a-z]{2}', str(Lang)) is not None:  # add only files in name format 'XX_yy'
@@ -26,14 +35,14 @@ class LangSupport:
         if len(self.lang_list):
             if lang not in self.lang_list:
                 self.language = self.lang_list[0]  # selects any available language if selected language is unreachable
-                print(f"Warning! {lang} language not found.")
+                print(f"<{self.name}>\nWarning! {lang} language not found.")
             else:
                 self.language = lang
         else:
-            print("Fatal error! Languages not indexed!")
+            print(f"<{self.name}>\nFatal error! Languages not indexed!")
             abort()
         try:
-            with open(f"Languages\{self.language}", "r", encoding="utf-8") as lang_data:
+            with open(f"{self.directory}\{self.language}", "r", encoding="utf-8") as lang_data:
                 self.dictionary = {}
                 for line in lang_data:
                     if not line.startswith(".."):  # double-dotted lines are not interpreted comment lines
@@ -41,22 +50,26 @@ class LangSupport:
                         # and remove escaping
                         self.dictionary[split_line[0]] = split_line[1]  # enter values by keys into dictionary
         except FileNotFoundError:
-            print("Fatal error! File not found!")
+            print(f"<{self.name}>\nFatal error! File not found!")
             abort()
         finally:
             lang_data.close()
 
-    def get_text(self, dict_key):
-        text = ""
-        if len(self.dictionary):  # specify if any language is loaded into dictionary
-            if dict_key in self.dictionary:
-                return str(self.dictionary[dict_key])  # return text value based on key value
+    def get_text(self, dict_key, *args):
+        text = None
+        try:
+            text = str(self.dictionary[dict_key])  # get text value based on key
+        except KeyError:
+            if len(self.dictionary):
+                print(f"<{self.name}>\nFatal error! {dict_key} key not found in {self.language} language file.")
             else:
-                print(f"Fatal error! {dict_key} key not found in {self.language} language file.")
-                abort()  # abort or not? // add missing parameters tracker //
-        else:
-            print(f"Fatal error! Language: {self.language} not loaded!")
+                print(f"<{self.name}>\nFatal error! Language: {self.language} not loaded!")
             abort()
+        try:
+            text = text.format(*args)   # try to format text with arguments, if any specified
+        except IndexError:
+            pass
+        return text
 
 
 if __name__ == "__main__":

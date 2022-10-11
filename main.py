@@ -17,7 +17,7 @@ except FileNotFoundError:
     sim_version = "Not specified"
     sim_release_date = "Not specified"
 
-languages = LangSupport()
+languages = LangSupport("SimLanguages")
 
 
 class Cons:
@@ -80,12 +80,12 @@ class MainContainer(tk.Tk):
         for win_frame in sim_windows:
             frame = win_frame(parent=self)
             frame.pack(expand=False)
-            self.notebook.add(frame, text="")
+            self.notebook.add(frame)
             self.notebook_frames.append(frame)
 
     def change_language(self, lang):
         languages.set_language(lang)
-        for index, language in zip(range(len(languages.lang_list)), languages.lang_list):
+        for index, language in enumerate(languages.lang_list):
             if language == lang:
                 self.langmenu.entryconfigure(index=index, state=tk.DISABLED)
             else:
@@ -106,21 +106,25 @@ class MainContainer(tk.Tk):
         self.filemenu.entryconfigure(index=5, label=languages.get_text('settingsfilemenu'))
         self.filemenu.entryconfigure(index=7, label=languages.get_text('exitfilemenu'))
         self.infomenu.entryconfigure(index=0, label=languages.get_text('versioninfomenu'), command=lambda:
-                                     messagebox.showinfo(title=languages.get_text('versioninfomenu'),
-                                                         message=f"{languages.get_text('simversion').format(sim_version)}\n"
-                                                                 f"{languages.get_text('simrelease').format(sim_release_date)}"))
+        messagebox.showinfo(title=languages.get_text('versioninfomenu'),
+                            message=f"{languages.get_text('simversion').format(sim_version)}\n"
+                                    f"{languages.get_text('simrelease').format(sim_release_date)}"))
         self.infomenu.entryconfigure(index=1, label=languages.get_text('developerinfomenu'), command=lambda:
-                                     messagebox.showinfo(title=languages.get_text('developerinfomenu'),
-                                                         message=languages.get_text('simdev')))
+        messagebox.showinfo(title=languages.get_text('developerinfomenu'),
+                            message=languages.get_text('simdev')))
         self.infomenu.entryconfigure(index=3, label=languages.get_text('helpinfomenu'),
                                      command=lambda: self.show_help())
-        for tab_id, tab in zip(range(len(self.notebook_frames)), self.notebook_frames):
+        for tab_id, tab in enumerate(self.notebook_frames):
             self.notebook.tab(tab_id, text=languages.get_text(tab.long_name.lower()))
             tab.content_update()
 
-    @staticmethod
-    def show_help():
-        messagebox.showinfo(title=languages.get_text('helpinfomenu'), message="Test")
+    def show_help(self):
+        myhelp = tk.Toplevel(self)
+        myhelp.wm_title(languages.get_text('helppage'))
+        myhelp.wm_geometry("300x200")
+        label = tk.Label(myhelp, text="test")
+        label.pack(expand=True)
+        # myhelp.bind()
 
 
 class StartWindow(tk.Frame):

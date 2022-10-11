@@ -1,5 +1,6 @@
-from sys import exit, argv
+from sys import exit
 from os import system
+import argparse
 from datetime import datetime
 from tkinter import Tk, Label, Button, Frame
 
@@ -11,9 +12,7 @@ class VersionSupervisor:
         self.stable, self.beta, self.alfa = 0, 0, 0
         self.stable_max, self.beta_max, self.alfa_max = 9, 99, 999
 
-    def run_cli(self, script):
-        if system("py " + script) != 0:
-            exit()
+    def run_cli(self):
         usr_input = input("Does this version of project work? (if yes, update project version with specified type)\n?")
         if usr_input.lower() in ("y", "yes", "yeah", "yep"):
             self.read_version()
@@ -26,22 +25,10 @@ class VersionSupervisor:
             self.count_version(usr_input)
             self.update_version()
 
-    def run_gui(self, script):
+    def run_gui(self):
         vsgui = GUI()
-        if system("py " + script) == 0:
-            vsgui.run(self)
+        vsgui.run(self)
         exit()
-
-    @staticmethod
-    def help_cli():
-        print("Format:\n{} -hc <script.py>")
-        print("Simple version update supervisor, when parsed script ends executions, "
-              "script asks about decision about version.")
-        print("Options:\n"
-              "     -c : run in CLI mode, if not specified run in GUI mode\n"
-              "     -h : print this help\n"
-              "     <script.py> : python (only) script to execute and supervise version\n"
-              "Copyright (2022) Mateusz Ferenc")
 
     def read_version(self):
         self.data = {}
@@ -64,14 +51,14 @@ class VersionSupervisor:
                 else:
                     self.alfa = 0
                     user_selection = 'b'
-            if user_selection == 'b':
+            elif user_selection == 'b':
                 if self.beta < self.beta_max:
                     self.beta += 1
                     self.alfa = 0
                 else:
                     self.alfa, self.beta = 0, 0
                     user_selection = 's'
-            if user_selection == 's':
+            elif user_selection == 's':
                 if self.stable < self.stable_max:
                     self.stable += 1
                     self.alfa, self.beta = 0, 0
@@ -104,10 +91,10 @@ class GUI(Tk):
         self.frame = Frame(self)
         self.frame.label0 = Label(self, text="Does this version of project work?",
                                   bg="#999999", fg="#FFFFFF", font=("Helvetica", 12))
-        self.frame.button0 = Button(self, text="Yes", bg="#AAAAAA", command=lambda: self.version_check('yes'),
-                                    width=5, relief="ridge", cursor='heart', fg="#FFFFFF", font=("Helvetica", 10))
-        self.frame.button1 = Button(self, text="No", bg="#AAAAAA", command=lambda: self.version_check('no'),
-                                    width=5, relief="ridge", cursor='pirate', fg="#FFFFFF", font=("Helvetica", 10))
+        self.frame.button0 = Button(self, text="Yes", bg="#AAAAAA", width=5, relief="ridge", cursor='heart',
+                                    fg="#FFFFFF", font=("Helvetica", 10))
+        self.frame.button1 = Button(self, text="No", bg="#AAAAAA", width=5, relief="ridge", cursor='pirate',
+                                    fg="#FFFFFF", font=("Helvetica", 10))
         self.frame.label1 = Label(self, text="Current version data:", bg="#999999", fg="#FFFFFF",
                                   font=("Helvetica", 10))
         self.frame.label2 = Label(self, text="", bg="#999999", fg="#FFFFFF", font=("Helvetica", 10))
@@ -129,6 +116,9 @@ class GUI(Tk):
         self.frame.button3.place(relx=0.4, rely=0.75, relwidth=0.2)
         self.frame.button4.place(relx=0.7, rely=0.75, relwidth=0.2)
 
+        self.frame.button0.bind('<Button-1>', self.yes_button)
+        self.frame.button1.bind('<Button-1>', self.no_button)
+
     def run(self, parent):
         self.parent = parent
         self.parent.read_version()
@@ -136,44 +126,38 @@ class GUI(Tk):
                                       f"release date : {self.parent.data['release_date']}")
         self.mainloop()
 
-    def version_check(self, selection):
-        if selection == 'yes':
-            self.frame.button0.config(state="disabled")
-            # self.frame.button1.config(state="disabled") could be useful if accidentally clicked yes
-            self.frame.button2.config(state="normal")
-            self.frame.button3.config(state="normal")
-            self.frame.button4.config(state="normal")
-        else:
-            self.destroy()
-            exit()
-
     def incr_version(self, v):
-        self.frame.button2.config(state="disabled")
-        self.frame.button3.config(state="disabled")
-        self.frame.button4.config(state="disabled")
         self.parent.count_version(v)
         self.parent.update_version()
+        self.destroy()
+        exit()
+
+    def yes_button(self, event):
+        self.frame.button0.config(state="disabled")
+        self.frame.button2.config(state="normal")
+        self.frame.button3.config(state="normal")
+        self.frame.button4.config(state="normal")
+
+    def no_button(self, event):
         self.destroy()
         exit()
 
 
 if __name__ == "__main__":
     version = VersionSupervisor()
-    if len(argv) == 2:
-        if argv[1] == '-h':
-            version.help_cli()
-        elif argv[1].endswith(".py"):
-            version.run_gui(argv[1])
-        else:
-            print("Wrong argument: {}".format(argv[1]))
-    elif len(argv) == 3:
-        if '-h' in (argv[1], argv[2]):
-            version.help_cli()
-        elif '-c' in (argv[1], argv[2]):
-            for arg in (argv[1], argv[2]):
-                if arg.endswith(".py"):
-                    version.run_cli(arg)
-        else:
-            print("Wrong arguments: {} {}".format(argv[1], argv[2]))
+    parser = argparse.ArgumentParser(description="Script version supervisor Copyright (2022) Mateusz Ferenc")
+    parser.add_argument("script", type=str,
+                        help="python (only) script to execute and supervise version")
+    parser.add_argument("-d", "--debug", help="Debug mode (Does not update version, no ask window)",
+                        action="store_true")
+    parser.add_argument("-c", "--cli", help="Command Line Interface mode, no GUI (Default GUI mode)",
+                        action="store_true")
+    args = parser.parse_args()
+    if args.debug:
+        print(system("py " + args.script))
     else:
-        print("Too {} arguments! Try running with -h switch".format("few" if len(argv) < 2 else "many"))
+        if system("py " + args.script) == 0:
+            if args.cli:
+                version.run_cli()
+            else:
+                version.run_gui()
