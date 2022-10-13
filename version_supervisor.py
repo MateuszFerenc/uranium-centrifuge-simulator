@@ -8,7 +8,6 @@ from atexit import register as register_exit
 
 class VersionSupervisor:
     def __init__(self):
-        super().__init__()
         self.data = None
         self.stable, self.beta, self.alfa = 0, 0, 0
         self.stable_max, self.beta_max, self.alfa_max = 9, 99, 999
@@ -150,7 +149,10 @@ class GUI(Tk):
 
 
 class DataLogger:
+    instances = []
+
     def __init__(self, log_name=None, directory=None):
+        self.__class__.instances.append(self)
         self.do_log = True
         self.directory = ""
         self.logextension = "log"
@@ -166,8 +168,12 @@ class DataLogger:
         except Exception as e:
             print(e)
             exit()
-        register_exit(self.destroy_logger)
+        # register_exit(self.destroy_logger)
         self.log("# Log begin #")
+
+    def __del__(self):
+        self.log("# Log end #")
+        self.log_name.close()
 
     def config_logger(self, do_log, new_log=None):
         self.do_log = do_log

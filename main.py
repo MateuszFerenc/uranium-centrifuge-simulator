@@ -152,17 +152,17 @@ class MainContainer(tk.Tk):
         def prev_dir(event):
             if len(dir_path):
                 dir_path.pop()
-                load_dirs(path[-1] if len(dir_path) else None)
+                load_dirs(dir_path[-1] if len(dir_path) else None)
 
         def clear_logs(logs):
             for log in logs:
                 # if path.isfile(path.abspath(log)) and re.match('.*\.log', str(dir)):
                 file = str('\\'.join(dir_path) + '\\' + log)
-                if file not in exit_tasks.keys():
-                    exit_tasks[file] = 'remove'
+                exit_tasks[file] = 'remove-file'
             button_clear.configure(state=tk.DISABLED)
             messagebox.showinfo(title=languages.get_text('infomenu'),
                                 message=languages.get_text('logsclearinfo'))
+            window.destroy()
 
         def load_dirs(search):
             dirs = listdir(search)
@@ -171,7 +171,8 @@ class MainContainer(tk.Tk):
             for dir in dirs:
                 if path.isdir(path.abspath(dir)) and re.match('^[\.]', str(dir)) is None:
                     dir_search.append(dir)
-                elif re.match(f'.*\.{dl.logextension}', str(dir)):
+                elif re.match(f'.*\.{dl.logextension}', str(dir)) \
+                        and str('\\'.join(dir_path) + '\\' + dir) not in list(exit_tasks.keys()):
                     dir_search.append(dir)
                     logs.append(dir)
             dir_var = tk.Variable(value=dir_search)
@@ -186,23 +187,24 @@ class MainContainer(tk.Tk):
         center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
         window.wm_geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
         window.resizable(False, False)
+
         window.columnconfigure(index=0, weight=1)
         window.columnconfigure(index=1, weight=1)
-        window.columnconfigure(index=2, weight=1)
         window.rowconfigure(index=0, weight=1)
         window.rowconfigure(index=1, weight=1)
-        window.rowconfigure(index=2, weight=1)
+
         dir_var = tk.Variable(value=None)
-        dir_list = tk.Listbox(window, listvariable=dir_var, height=5)
-        dir_list.grid(column=0, row=0, padx=int(window_x * 0.01), pady=int(window_y * 0.01))
+        dir_list = tk.Listbox(window, listvariable=dir_var, height=6, width=30, selectmode=tk.SINGLE)
+        dir_list.grid(column=0, row=0, columnspan=2)
         button_back = ttk.Button(window, text=languages.get_text('backbutton'))
-        button_back.grid(column=0, row=1, padx=int(window_x * 0.01), pady=int(window_y * 0.01))
+        button_back.grid(column=0, row=1)
         button_clear = ttk.Button(window, text=languages.get_text('clearbutton'), state=tk.DISABLED)
-        button_clear.grid(column=1, row=1, padx=int(window_x * 0.01), pady=int(window_y * 0.01))
+        button_clear.grid(column=1, row=1)
         load_dirs(None)
         dir_path = []
         dir_list.bind('<<ListboxSelect>>', select_dir)
         button_back.bind('<Button-1>', prev_dir)
+        window.grab_set()
 
     def opensettings(self):
         window = tk.Toplevel(self)
@@ -308,7 +310,8 @@ class ChartsWindow(ttk.Frame):
 
 def at_exit():
     for file, task in exit_tasks.items():
-        print(f"{file} {task}")
+        if task == 'remove-file':
+            remove(file)
 
 
 sim_windows = (StartWindow, InputsWindow, ControllersWindow, OutputWindow, ChartsWindow)
@@ -317,5 +320,5 @@ if __name__ == "__main__":
     register_exit(at_exit)
     main = MainContainer()
     main.mainloop()
-    del languages
-    del dl
+    for inst in DataLogger.instances:
+        del inst

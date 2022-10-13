@@ -10,7 +10,6 @@ class LangSupport:
     def __init__(self, directory=None, ignore_file_error=False, ignore_key_error=False, ignore_dict_error=False):
         if directory is None:
             exit(3)
-        super().__init__()
         self.name = self.__class__.__name__
         self.lang_list = []
         self.language = "EN_us"  # default language
