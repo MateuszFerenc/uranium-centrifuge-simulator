@@ -5,8 +5,6 @@ from datetime import datetime
 from tkinter import Tk, Label, Button, Frame
 from atexit import register as register_exit
 
-debug_mode = False
-
 
 class VersionSupervisor:
     def __init__(self):
@@ -153,11 +151,9 @@ class GUI(Tk):
 
 class DataLogger:
     def __init__(self, log_name=None, directory=None):
-        if debug_mode:
-            self.do_log = False
-            return None
         self.do_log = True
         self.directory = ""
+        self.logextension = "log"
         try:
             mkdir(directory)
             self.directory = directory + '\\'
@@ -166,24 +162,25 @@ class DataLogger:
         except TypeError:
             pass
         try:
-            self.log_name = open(f"{self.directory}{log_name}.log", "a")
+            self.log_name = open(f"{self.directory}{log_name}.{self.logextension}", "a")
         except Exception as e:
             print(e)
             exit()
         register_exit(self.destroy_logger)
+        self.log("# Log begin #")
 
     def config_logger(self, do_log, new_log=None):
         self.do_log = do_log
         if new_log is not None:
             self.log_name.close()
             try:
-                self.log_name = open(f"{self.directory}{new_log}.log", "a")
+                self.log_name = open(f"{self.directory}{new_log}.{self.logextension}", "a")
             except Exception as e:
                 print(e)
                 exit()
 
     def destroy_logger(self):
-        print("logger destroyed!")
+        self.log("# Log end #")
         self.log_name.close()
 
     def log(self, text, do_print=False):
@@ -192,7 +189,7 @@ class DataLogger:
         if self.do_log and not do_print:
             self.log_name.write(log)
         else:
-            print(log)
+            print(f"<{self.log_name.name}> {log}", end="")
 
 
 if __name__ == "__main__":
@@ -205,7 +202,6 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--cli", help="Command Line Interface mode, no GUI (Default GUI mode)",
                         action="store_true")
     args = parser.parse_args()
-    debug_mode = args.debug
     if args.debug:
         print(system("py " + args.script))
     else:

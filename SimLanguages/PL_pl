@@ -21,6 +21,7 @@ exportfilemenu#Eksportuj
 importfilemenu#Importuj
 languagefilemenu#Język
 settingsfilemenu#Ustawienia
+clearlogsfilemenu#Wyczyść logi
 exitfilemenu#Wyjście
 infomenu#Informacje
 versioninfomenu#Wersja
@@ -30,3 +31,6 @@ openfile#Otwórz plik
 savefile#Zapisz plik
 exportfile#Eksportuj dane
 helppage#Strona Pomocy
+backbutton#Powrót
+clearbutton#Usuń
+logsclearinfo#Logi zostaną usunięte po zakończeniu programu

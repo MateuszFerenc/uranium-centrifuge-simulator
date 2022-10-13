@@ -21,6 +21,7 @@ exportfilemenu#Export
 importfilemenu#Import
 languagefilemenu#Language
 settingsfilemenu#Settings
+clearlogsfilemenu#Clear logs
 exitfilemenu#Exit
 infomenu#Info
 versioninfomenu#Version
@@ -30,3 +31,6 @@ openfile#Open File
 savefile#Save file
 exportfile#Export data
 helppage#Help Page
+backbutton#Back
+clearbutton#Delete
+logsclearinfo#Logs will be deleted after program exit

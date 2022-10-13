@@ -1,6 +1,9 @@
+import re
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
+from os import listdir, path, remove
+from atexit import register as register_exit
 
 from lang_support import LangSupport
 from version_supervisor import DataLogger
@@ -18,7 +21,12 @@ except FileNotFoundError:
     sim_version = "Not specified"
     sim_release_date = "Not specified"
 
-languages = LangSupport("SimLanguages")
+languages = LangSupport("SimLanguages", ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
+
+dl = DataLogger(__name__, 'logs')
+dl.config_logger(do_log=False)  # remove in future
+
+exit_tasks = {}
 
 
 class Cons:
@@ -62,9 +70,10 @@ class MainContainer(tk.Tk):
             self.langmenu.add_command(label=lang, command=lambda l=lang: self.change_language(l))
         self.filemenu.add_cascade(menu=self.langmenu)  # Language menu File
         self.filemenu.add_separator()
-        self.filemenu.add_command(command=lambda: self.quit())  # Settings menu File
-        self.filemenu.add_separator()
-        self.filemenu.add_command(command=lambda: self.quit())  # Exit menu File
+        self.filemenu.add_command(command=self.opensettings)  # Settings menu File
+        self.filemenu.add_command(command=self.clearlogs)
+        self.filemenu.add_separator()  # Clear logs menu File
+        self.filemenu.add_command(command=self.quit)  # Exit menu File
         self.menubar.add_cascade(menu=self.filemenu)  # menu File tab
 
         self.infomenu = tk.Menu(self.menubar, tearoff=False)
@@ -105,7 +114,8 @@ class MainContainer(tk.Tk):
                                      command=lambda: filedialog.asksaveasfile(title=languages.get_text('exportfile')))
         self.filemenu.entryconfigure(index=3, label=languages.get_text('languagefilemenu'))
         self.filemenu.entryconfigure(index=5, label=languages.get_text('settingsfilemenu'))
-        self.filemenu.entryconfigure(index=7, label=languages.get_text('exitfilemenu'))
+        self.filemenu.entryconfigure(index=6, label=languages.get_text('clearlogsfilemenu'))
+        self.filemenu.entryconfigure(index=8, label=languages.get_text('exitfilemenu'))
         self.infomenu.entryconfigure(index=0, label=languages.get_text('versioninfomenu'), command=lambda:
         messagebox.showinfo(title=languages.get_text('versioninfomenu'),
                             message=f"{languages.get_text('simversion').format(sim_version)}\n"
@@ -120,12 +130,90 @@ class MainContainer(tk.Tk):
             tab.content_update()
 
     def show_help(self):
-        myhelp = tk.Toplevel(self)
-        myhelp.wm_title(languages.get_text('helppage'))
-        myhelp.wm_geometry("300x200")
-        label = tk.Label(myhelp, text="test")
+        window = tk.Toplevel(self)
+        window.wm_title(languages.get_text('helppage'))
+        window_x = 300
+        window_y = 200
+        center_x = int(self.winfo_screenwidth() / 2 - window_x / 2)
+        center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
+        window.wm_geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
+        label = tk.Label(window, text="under construction")
         label.pack(expand=True)
-        # myhelp.bind()
+
+    def clearlogs(self):
+        def select_dir(event):
+            sel_dir = dir_list.get(dir_list.curselection())
+            if path.isdir(path.abspath(sel_dir)):
+                dir_path.append(sel_dir)
+                logs = load_dirs(sel_dir)
+                if len(logs):
+                    button_clear.configure(state=tk.ACTIVE, command=lambda: clear_logs(logs))
+
+        def prev_dir(event):
+            if len(dir_path):
+                dir_path.pop()
+                load_dirs(path[-1] if len(dir_path) else None)
+
+        def clear_logs(logs):
+            for log in logs:
+                # if path.isfile(path.abspath(log)) and re.match('.*\.log', str(dir)):
+                file = str('\\'.join(dir_path) + '\\' + log)
+                if file not in exit_tasks.keys():
+                    exit_tasks[file] = 'remove'
+            button_clear.configure(state=tk.DISABLED)
+            messagebox.showinfo(title=languages.get_text('infomenu'),
+                                message=languages.get_text('logsclearinfo'))
+
+        def load_dirs(search):
+            dirs = listdir(search)
+            dir_search = []
+            logs = []
+            for dir in dirs:
+                if path.isdir(path.abspath(dir)) and re.match('^[\.]', str(dir)) is None:
+                    dir_search.append(dir)
+                elif re.match(f'.*\.{dl.logextension}', str(dir)):
+                    dir_search.append(dir)
+                    logs.append(dir)
+            dir_var = tk.Variable(value=dir_search)
+            dir_list.configure(listvariable=dir_var, state=tk.NORMAL if len(dir_search) else tk.DISABLED)
+            return logs
+
+        window = tk.Toplevel(self)
+        window.wm_title(languages.get_text('clearlogsfilemenu'))
+        window_x = 300
+        window_y = 200
+        center_x = int(self.winfo_screenwidth() / 2 - window_x / 2)
+        center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
+        window.wm_geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
+        window.resizable(False, False)
+        window.columnconfigure(index=0, weight=1)
+        window.columnconfigure(index=1, weight=1)
+        window.columnconfigure(index=2, weight=1)
+        window.rowconfigure(index=0, weight=1)
+        window.rowconfigure(index=1, weight=1)
+        window.rowconfigure(index=2, weight=1)
+        dir_var = tk.Variable(value=None)
+        dir_list = tk.Listbox(window, listvariable=dir_var, height=5)
+        dir_list.grid(column=0, row=0, padx=int(window_x * 0.01), pady=int(window_y * 0.01))
+        button_back = ttk.Button(window, text=languages.get_text('backbutton'))
+        button_back.grid(column=0, row=1, padx=int(window_x * 0.01), pady=int(window_y * 0.01))
+        button_clear = ttk.Button(window, text=languages.get_text('clearbutton'), state=tk.DISABLED)
+        button_clear.grid(column=1, row=1, padx=int(window_x * 0.01), pady=int(window_y * 0.01))
+        load_dirs(None)
+        dir_path = []
+        dir_list.bind('<<ListboxSelect>>', select_dir)
+        button_back.bind('<Button-1>', prev_dir)
+
+    def opensettings(self):
+        window = tk.Toplevel(self)
+        window.wm_title(languages.get_text('settingsfilemenu'))
+        window_x = 300
+        window_y = 200
+        center_x = int(self.winfo_screenwidth() / 2 - window_x / 2)
+        center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
+        window.wm_geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
+        label = tk.Label(window, text="under construction")
+        label.pack(expand=True)
 
 
 class StartWindow(tk.Frame):
@@ -218,9 +306,16 @@ class ChartsWindow(ttk.Frame):
         pass
 
 
+def at_exit():
+    for file, task in exit_tasks.items():
+        print(f"{file} {task}")
+
+
 sim_windows = (StartWindow, InputsWindow, ControllersWindow, OutputWindow, ChartsWindow)
 
 if __name__ == "__main__":
-    dl = DataLogger(__name__, 'logs')
+    register_exit(at_exit)
     main = MainContainer()
     main.mainloop()
+    del languages
+    del dl
