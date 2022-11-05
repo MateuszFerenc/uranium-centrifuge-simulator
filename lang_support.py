@@ -1,9 +1,8 @@
-from os import listdir, abort
+from os import listdir, path
 from re import match
 from version_supervisor import DataLogger
 
-dl = DataLogger(__name__, 'logs')
-dl.config_logger(do_log=False)      # remove in future
+dl = DataLogger(__name__, 'logs', debug=True)   # "debug=True" remove in future
 
 
 class LangSupport:
@@ -14,7 +13,8 @@ class LangSupport:
         self.lang_list = []
         self.language = "EN_us"  # default language
         self.dictionary = {}  # language dictionary
-        self.directory = directory
+        self.path = path.dirname(__file__)
+        self.directory = path.join(self.path, directory)
 
         self.ignore_file_error = ignore_file_error
         self.ignore_key_error = ignore_key_error

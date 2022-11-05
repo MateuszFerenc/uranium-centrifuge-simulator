@@ -22,9 +22,7 @@ except FileNotFoundError:
     sim_release_date = "Not specified"
 
 languages = LangSupport("SimLanguages", ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
-
-dl = DataLogger(__name__, 'logs')
-dl.config_logger(do_log=False)  # remove in future
+dl = DataLogger(__name__, 'logs', debug=True)  # "debug=True" remove in future
 
 exit_tasks = {}
 
@@ -52,9 +50,8 @@ class MainContainer(tk.Tk):
 
     def create_window(self):
         self.title(languages.get_text('simtitle'))
-        center_x = int(self.winfo_screenwidth() / 2 - Cons.window_x / 2)
-        center_y = int(self.winfo_screenheight() / 2 - Cons.window_y / 2)
-        self.geometry(f"{Cons.window_x}x{Cons.window_y}+{center_x}+{center_y}")
+        self.geometry(f"{Cons.window_x}x{Cons.window_y}+"
+                      f"{get_center(self, 'x', Cons.window_x)}+{get_center(self, 'y', Cons.window_y)}")
         self.resizable(False, False)
         self.configure(bg=Cons.sim_background_color)
 
@@ -70,8 +67,8 @@ class MainContainer(tk.Tk):
             self.langmenu.add_command(label=lang, command=lambda l=lang: self.change_language(l))
         self.filemenu.add_cascade(menu=self.langmenu)  # Language menu File
         self.filemenu.add_separator()
-        self.filemenu.add_command(command=self.opensettings)  # Settings menu File
-        self.filemenu.add_command(command=self.clearlogs)
+        self.filemenu.add_command(command=self.opensettings_page)  # Settings menu File
+        self.filemenu.add_command(command=self.clearlogs_page)
         self.filemenu.add_separator()  # Clear logs menu File
         self.filemenu.add_command(command=self.quit)  # Exit menu File
         self.menubar.add_cascade(menu=self.filemenu)  # menu File tab
@@ -124,26 +121,27 @@ class MainContainer(tk.Tk):
         messagebox.showinfo(title=languages.get_text('developerinfomenu'),
                             message=languages.get_text('simdev')))
         self.infomenu.entryconfigure(index=3, label=languages.get_text('helpinfomenu'),
-                                     command=lambda: self.show_help())
+                                     command=lambda: self.show_help_page())
         for tab_id, tab in enumerate(self.notebook_frames):
             self.notebook.tab(tab_id, text=languages.get_text(tab.long_name.lower()))
             tab.content_update()
 
-    def show_help(self):
+    def show_help_page(self):
         window = tk.Toplevel(self)
         window.wm_title(languages.get_text('helppage'))
-        window_x = 300
-        window_y = 200
-        center_x = int(self.winfo_screenwidth() / 2 - window_x / 2)
-        center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
-        window.wm_geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
+        window.wm_geometry(f"{300}x{200}+"
+                           f"{get_center(self, 'x', 300)}+{get_center(self, 'y', 200)}")
+        window.resizable(False, False)
+
         label = tk.Label(window, text="under construction")
         label.pack(expand=True)
 
-    def clearlogs(self):
+        window.grab_set()
+
+    def clearlogs_page(self):
         def select_dir(event):
             sel_dir = dir_list.get(dir_list.curselection())
-            if path.isdir(path.abspath(sel_dir)):
+            if path.isdir(path.join(path.dirname(__file__), sel_dir)):
                 dir_path.append(sel_dir)
                 logs = load_dirs(sel_dir)
                 if len(logs):
@@ -152,40 +150,36 @@ class MainContainer(tk.Tk):
         def prev_dir(event):
             if len(dir_path):
                 dir_path.pop()
-                load_dirs(dir_path[-1] if len(dir_path) else None)
+                load_dirs(dir_path[-1] if len(dir_path) else "")
 
         def clear_logs(logs):
             for log in logs:
-                # if path.isfile(path.abspath(log)) and re.match('.*\.log', str(dir)):
-                file = str('\\'.join(dir_path) + '\\' + log)
-                exit_tasks[file] = 'remove-file'
+                exit_tasks[log] = 'remove-file'
             button_clear.configure(state=tk.DISABLED)
             messagebox.showinfo(title=languages.get_text('infomenu'),
                                 message=languages.get_text('logsclearinfo'))
             window.destroy()
 
         def load_dirs(search):
-            dirs = listdir(search)
+            dir_name = path.join(path.dirname(__file__), search)
+            dirs = map(str, listdir(dir_name))
             dir_search = []
             logs = []
-            for dir in dirs:
-                if path.isdir(path.abspath(dir)) and re.match('^[\.]', str(dir)) is None:
-                    dir_search.append(dir)
-                elif re.match(f'.*\.{dl.logextension}', str(dir)) \
-                        and str('\\'.join(dir_path) + '\\' + dir) not in list(exit_tasks.keys()):
-                    dir_search.append(dir)
-                    logs.append(dir)
+            for dir_found in dirs:
+                if path.isdir(path.join(dir_name, dir_found)) and re.match('^\.', dir_found) is None:
+                    dir_search.append(dir_found)
+                elif re.match(f'.*\.{dl.logextension}', dir_found) \
+                        and path.join(dir_name, dir_found) not in list(exit_tasks.keys()):
+                    dir_search.append(dir_found)
+                    logs.append(path.join(dir_name, dir_found))
             dir_var = tk.Variable(value=dir_search)
             dir_list.configure(listvariable=dir_var, state=tk.NORMAL if len(dir_search) else tk.DISABLED)
             return logs
 
         window = tk.Toplevel(self)
         window.wm_title(languages.get_text('clearlogsfilemenu'))
-        window_x = 300
-        window_y = 200
-        center_x = int(self.winfo_screenwidth() / 2 - window_x / 2)
-        center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
-        window.wm_geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
+        window.wm_geometry(f"{300}x{200}+"
+                           f"{get_center(self, 'x', 300)}+{get_center(self, 'y', 200)}")
         window.resizable(False, False)
 
         window.columnconfigure(index=0, weight=1)
@@ -200,22 +194,49 @@ class MainContainer(tk.Tk):
         button_back.grid(column=0, row=1)
         button_clear = ttk.Button(window, text=languages.get_text('clearbutton'), state=tk.DISABLED)
         button_clear.grid(column=1, row=1)
-        load_dirs(None)
+        load_dirs("")
         dir_path = []
         dir_list.bind('<<ListboxSelect>>', select_dir)
         button_back.bind('<Button-1>', prev_dir)
         window.grab_set()
 
-    def opensettings(self):
+    def opensettings_page(self):
         window = tk.Toplevel(self)
         window.wm_title(languages.get_text('settingsfilemenu'))
-        window_x = 300
-        window_y = 200
-        center_x = int(self.winfo_screenwidth() / 2 - window_x / 2)
-        center_y = int(self.winfo_screenheight() / 2 - window_y / 2)
-        window.wm_geometry(f"{window_x}x{window_y}+{center_x}+{center_y}")
+        window.wm_geometry(f"{300}x{200}+"
+                           f"{get_center(self, 'x', 300)}+{get_center(self, 'y', 200)}")
+        window.resizable(False, False)
+
         label = tk.Label(window, text="under construction")
         label.pack(expand=True)
+
+        window.grab_set()
+
+
+def get_center(parent, axis, val):
+    assert axis in ['x', 'y']
+    ax = {"x": parent.winfo_screenwidth(), "y": parent.winfo_screenheight()}
+    return int(ax[axis] / 2 - val / 2)
+
+
+class UnitConverters:
+    #                               <from>
+    #                       Kelvin, Celsius, Fahrenheit
+    #           Kelvin        < >      +         +
+    #   <to>    Celsius        +      < >        +
+    #           Fahrenheit     +       +        < >
+    temperature_map = (
+        ("{}",                          "{} - 273.15",      "({} - 273.15) * 9/5 + 32"),
+        ("{} + 273.15",                 "{}",               "{} * 9/5 + 32"),
+        ("({} - 32) * 5/9 + 273.15",    "({} - 32) * 5/9",  "{}"))
+    forbidden_temperature = (0, -273.15, -459.67)
+    temperature_dict = {"Kelvin": 0, "Celsius": 1, "Fahrenheit": 2}
+
+    def convert_temperature(self, value, from_, to):
+        if value < self.forbidden_temperature[self.temperature_dict[from_]]:
+            return None
+        conv = eval(self.temperature_map[self.temperature_dict[from_]][self.temperature_dict[to]].format(value))
+        return conv
 
 
 class StartWindow(tk.Frame):
@@ -321,4 +342,4 @@ if __name__ == "__main__":
     main = MainContainer()
     main.mainloop()
     for inst in DataLogger.instances:
-        del inst
+        inst.end()

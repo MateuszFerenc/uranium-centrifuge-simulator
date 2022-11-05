@@ -1,9 +1,9 @@
 from sys import exit
-from os import system, mkdir
+from os import mkdir, path
+from subprocess import call
 import argparse
 from datetime import datetime
 from tkinter import Tk, Label, Button, Frame
-from atexit import register as register_exit
 
 
 class VersionSupervisor:
@@ -32,7 +32,7 @@ class VersionSupervisor:
         exit()
 
     def read_version(self):
-        self.data = {}
+        self.data = {"version": "0.00.000", "release_date": "not defined"}
         try:
             with open("version_status", "r") as version_data:
                 for line in version_data:
@@ -151,51 +151,45 @@ class GUI(Tk):
 class DataLogger:
     instances = []
 
-    def __init__(self, log_name=None, directory=None):
+    def __init__(self, log_name=None, directory=None, debug=False):
         self.__class__.instances.append(self)
-        self.do_log = True
+        self.do_log = not debug
+        self.path = path.dirname(__file__)
         self.directory = ""
         self.logextension = "log"
-        try:
-            mkdir(directory)
-            self.directory = directory + '\\'
-        except FileExistsError:
-            self.directory = directory + '\\'
-        except TypeError:
-            pass
-        try:
-            self.log_name = open(f"{self.directory}{log_name}.{self.logextension}", "a")
-        except Exception as e:
-            print(e)
-            exit()
-        # register_exit(self.destroy_logger)
+        self.log_name = log_name
+        if not debug:
+            try:
+                self.directory = path.join(self.path, directory)
+                mkdir(self.directory)
+                self.directory += '\\'
+            except FileExistsError:
+                self.directory = path.join(self.path, directory + '\\')
+            except TypeError:
+                pass
+
         self.log("# Log begin #")
 
-    def __del__(self):
+    def end(self):
         self.log("# Log end #")
-        self.log_name.close()
 
     def config_logger(self, do_log, new_log=None):
         self.do_log = do_log
         if new_log is not None:
-            self.log_name.close()
-            try:
-                self.log_name = open(f"{self.directory}{new_log}.{self.logextension}", "a")
-            except Exception as e:
-                print(e)
-                exit()
-
-    def destroy_logger(self):
-        self.log("# Log end #")
-        self.log_name.close()
+            self.log_name = new_log
 
     def log(self, text, do_print=False):
         now = datetime.now()
         log = f"{now.day}/{now.month}/{now.year} {now.hour}:{now.minute:02n}:{now.second:02n}\n{text}\n"
         if self.do_log and not do_print:
-            self.log_name.write(log)
+            try:
+                with open(f"{self.directory}{self.log_name}.{self.logextension}", "a") as log_file:
+                    log_file.write(log)
+            except Exception as e:
+                print(e)
+                exit()
         else:
-            print(f"<{self.log_name.name}> {log}", end="")
+            print(f"<{self.log_name.name if self.do_log else self.log_name}> {log}", end="")
 
 
 if __name__ == "__main__":
@@ -208,10 +202,11 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--cli", help="Command Line Interface mode, no GUI (Default GUI mode)",
                         action="store_true")
     args = parser.parse_args()
+
     if args.debug:
-        print(system("py " + args.script))
+        print(call(["python", args.script]))
     else:
-        if system("py " + args.script) == 0:
+        if call(["python", args.script]) == 0:
             if args.cli:
                 version.run_cli()
             else:
