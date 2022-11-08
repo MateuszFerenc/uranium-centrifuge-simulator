@@ -45,7 +45,7 @@ class LangSupport:
             dl.log(f"Error! Languages not indexed or not present in directory!")
             return None
         try:
-            with open(f"{self.directory}\{self.language}", "r", encoding="utf-8") as lang_data:
+            with open(path.join(self.directory, self.language), "r", encoding="utf-8") as lang_data:
                 self.dictionary = {}
                 for line in lang_data:
                     if not line.startswith(".."):  # double-dotted lines are not interpreted comment lines
@@ -90,4 +90,6 @@ if __name__ == "__main__":
 # l = LangSupport()
 # print(l.get_languages())
 # print(l.dictionary)
-# print(l.get_text('siminfo2').format("Alfa 0.0"))
+# print(l.get_text("siminfo2", "Alfa 0.0"))
+# l.set_language("PL_pl")
+# print(l.get_text("siminfo2", "Alfa 0.0"))

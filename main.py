@@ -68,8 +68,8 @@ class MainContainer(tk.Tk):
         self.filemenu.add_cascade(menu=self.langmenu)  # Language menu File
         self.filemenu.add_separator()
         self.filemenu.add_command(command=self.opensettings_page)  # Settings menu File
-        self.filemenu.add_command(command=self.clearlogs_page)
-        self.filemenu.add_separator()  # Clear logs menu File
+        self.filemenu.add_command(command=self.clearlogs_page)  # Clear logs menu File
+        self.filemenu.add_separator()
         self.filemenu.add_command(command=self.quit)  # Exit menu File
         self.menubar.add_cascade(menu=self.filemenu)  # menu File tab
 
@@ -77,7 +77,7 @@ class MainContainer(tk.Tk):
         self.infomenu.add_command()  # Version menu Info
         self.infomenu.add_command()  # Developer menu Info
         self.infomenu.add_separator()
-        self.infomenu.add_command()  # Help menu Info
+        self.infomenu.add_command(command=self.show_help_page)  # Help menu Info
         self.menubar.add_cascade(menu=self.infomenu)  # menu Info tab
 
         self.notebook = ttk.Notebook(self, takefocus=False, height=Cons.window_y, width=Cons.window_x)
@@ -120,8 +120,7 @@ class MainContainer(tk.Tk):
         self.infomenu.entryconfigure(index=1, label=languages.get_text('developerinfomenu'), command=lambda:
         messagebox.showinfo(title=languages.get_text('developerinfomenu'),
                             message=languages.get_text('simdev')))
-        self.infomenu.entryconfigure(index=3, label=languages.get_text('helpinfomenu'),
-                                     command=lambda: self.show_help_page())
+        self.infomenu.entryconfigure(index=3, label=languages.get_text('helpinfomenu'))
         for tab_id, tab in enumerate(self.notebook_frames):
             self.notebook.tab(tab_id, text=languages.get_text(tab.long_name.lower()))
             tab.content_update()

@@ -183,13 +183,20 @@ class DataLogger:
         log = f"{now.day}/{now.month}/{now.year} {now.hour}:{now.minute:02n}:{now.second:02n}\n{text}\n"
         if self.do_log and not do_print:
             try:
-                with open(f"{self.directory}{self.log_name}.{self.logextension}", "a") as log_file:
+                with open(path.join(self.directory, f"{self.log_name}.{self.logextension}"), "a") as log_file:
                     log_file.write(log)
             except Exception as e:
                 print(e)
                 exit()
         else:
             print(f"<{self.log_name.name if self.do_log else self.log_name}> {log}", end="")
+
+# DataLogger usage
+# dl = DataLogger(<file_name>, <log_directory>, debug=<True/False>)
+# dl.log(<text>, do_print=<True/False>)
+#
+# for inst in DataLogger.instances:
+#       inst.end()
 
 
 if __name__ == "__main__":
