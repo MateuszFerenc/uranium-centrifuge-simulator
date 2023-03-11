@@ -2,11 +2,11 @@ import re
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
-from os import listdir, path, remove
+from os import listdir, path, remove, sep as separator
 from atexit import register as register_exit
 
 from lang_support import LangSupport
-from version_supervisor import DataLogger
+from datalogger import DataLogger
 
 try:
     with open("version_status", "r") as version_data:
@@ -21,8 +21,8 @@ except FileNotFoundError:
     sim_version = "Not specified"
     sim_release_date = "Not specified"
 
-languages = LangSupport("SimLanguages", ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
-dl = DataLogger(__name__, 'logs', debug=True)  # "debug=True" remove in future
+languages = LangSupport(path.basename(__file__).split(".")[0], ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
+dl = DataLogger(path.basename(__file__).split(".")[0], 'logs', debug=True)  # "debug=True" remove in future
 
 exit_tasks = {}
 
@@ -46,10 +46,10 @@ class MainContainer(tk.Tk):
         self.filemenu = None
         self.menubar = None
         self.create_window()
-        self.change_language(languages.language)
+        self.update_widgets()
 
     def create_window(self):
-        self.title(languages.get_text('simtitle'))
+        self.title("")
         self.geometry(f"{Cons.window_x}x{Cons.window_y}+"
                       f"{get_center(self, 'x', Cons.window_x)}+{get_center(self, 'y', Cons.window_y)}")
         self.resizable(False, False)
@@ -140,16 +140,16 @@ class MainContainer(tk.Tk):
     def clearlogs_page(self):
         def select_dir(event):
             sel_dir = dir_list.get(dir_list.curselection())
-            if path.isdir(path.join(path.dirname(__file__), sel_dir)):
+            if path.isdir(path.join(path.dirname(__file__), str(separator).join(dir_path), sel_dir)):
                 dir_path.append(sel_dir)
-                logs = load_dirs(sel_dir)
+                logs = load_dirs()
                 if len(logs):
                     button_clear.configure(state=tk.ACTIVE, command=lambda: clear_logs(logs))
 
         def prev_dir(event):
             if len(dir_path):
                 dir_path.pop()
-                load_dirs(dir_path[-1] if len(dir_path) else "")
+                load_dirs()
 
         def clear_logs(logs):
             for log in logs:
@@ -159,8 +159,8 @@ class MainContainer(tk.Tk):
                                 message=languages.get_text('logsclearinfo'))
             window.destroy()
 
-        def load_dirs(search):
-            dir_name = path.join(path.dirname(__file__), search)
+        def load_dirs():
+            dir_name = path.join(path.dirname(__file__), str(separator).join(dir_path))
             dirs = map(str, listdir(dir_name))
             dir_search = []
             logs = []
@@ -193,8 +193,8 @@ class MainContainer(tk.Tk):
         button_back.grid(column=0, row=1)
         button_clear = ttk.Button(window, text=languages.get_text('clearbutton'), state=tk.DISABLED)
         button_clear.grid(column=1, row=1)
-        load_dirs("")
         dir_path = []
+        load_dirs()
         dir_list.bind('<<ListboxSelect>>', select_dir)
         button_back.bind('<Button-1>', prev_dir)
         window.grab_set()

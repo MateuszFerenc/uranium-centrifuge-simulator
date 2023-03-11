@@ -1,0 +1,6 @@
+.. EN_us language file
+.. file format - parameter#text
+.. '#' ends parameter placeholder
+.. '..' starts single line command, not interpreted
+.. '{}' use for string format
+drawtitle#graph maker

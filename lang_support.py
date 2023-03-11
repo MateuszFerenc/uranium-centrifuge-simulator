@@ -1,15 +1,13 @@
 from os import listdir, path
 from re import match
-from version_supervisor import DataLogger
-
-dl = DataLogger(__name__, 'logs', debug=True)   # "debug=True" remove in future
+from datalogger import DataLogger
 
 
 class LangSupport:
     def __init__(self, directory=None, ignore_file_error=False, ignore_key_error=False, ignore_dict_error=False):
         if directory is None:
             exit(3)
-        self.name = self.__class__.__name__
+        self.dl = DataLogger(f"{path.basename(__file__).split('.')[0]}<<{directory}", 'logs', debug=True)  # "debug=True" remove in future
         self.lang_list = []
         self.language = "EN_us"  # default language
         self.dictionary = {}  # language dictionary
@@ -28,7 +26,7 @@ class LangSupport:
         try:
             files = listdir(self.directory)
         except FileNotFoundError:
-            dl.log(f"Fatal error! Directory {self.directory} does not exist")
+            self.dl.log(f"Fatal error! Directory {self.directory} does not exist")
             exit(3)
         self.lang_list = []
         for Lang in files:
@@ -39,10 +37,10 @@ class LangSupport:
     def set_language(self, lang):
         if len(self.lang_list):
             if lang not in self.lang_list:
-                dl.log(f"Warning! {lang} language not found.")
+                self.dl.log(f"Warning! {lang} language not found.")
             self.language = lang
         else:
-            dl.log(f"Error! Languages not indexed or not present in directory!")
+            self.dl.log(f"Error! Languages not indexed or not present in directory!")
             return None
         try:
             with open(path.join(self.directory, self.language), "r", encoding="utf-8") as lang_data:
@@ -54,10 +52,10 @@ class LangSupport:
                         self.dictionary[split_line[0]] = split_line[1]  # enter values by keys into dictionary
                 lang_data.close()
         except FileNotFoundError:
-            dl.log(f"Fatal error! File not found!")
+            self.dl.log(f"Fatal error! File not found!")
             if not self.ignore_file_error:
                 exit(3)
-            dl.log(f"Exit disabled by ignore_file_error flag.")
+            self.dl.log(f"Exit disabled by ignore_file_error flag.")
 
     def get_text(self, dict_key, *args):
         text = None
@@ -65,14 +63,14 @@ class LangSupport:
             text = str(self.dictionary[dict_key])  # get text value based on key
         except KeyError:
             if len(self.dictionary):
-                dl.log(f"Error! {dict_key} key not found in {self.language} language file.")
+                self.dl.log(f"Error! {dict_key} key not found in {self.language} language file.")
                 if self.ignore_key_error:
-                    dl.log(f"Error disabled by ignore_key_error flag.")
+                    self.dl.log(f"Error disabled by ignore_key_error flag.")
                     return dict_key
             else:
-                dl.log(f"Fatal error! Language: {self.language} not loaded!")
+                self.dl.log(f"Fatal error! Language: {self.language} not loaded!")
                 if self.ignore_dict_error:
-                    dl.log(f"Exit disabled by ignore_dict_error flag.")
+                    self.dl.log(f"Exit disabled by ignore_dict_error flag.")
                     return dict_key
             exit(3)
         try:
@@ -83,7 +81,7 @@ class LangSupport:
 
 
 if __name__ == "__main__":
-    dl.log("Fatal error! This file could not be ran standalone")
+    print("Fatal error! This file could not be ran standalone")
     exit(3)
 
 # example usage
