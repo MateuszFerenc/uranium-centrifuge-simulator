@@ -1,7 +1,7 @@
 .. EN_us language file
 .. file format - parameter#text
 .. '#' ends parameter placeholder
-.. '..' starts single line command, not interpreted
+.. '..' starts single line comment, not interpreted
 .. '{}' use for string format
 simtitle#Uranium Centrifuge Simulator
 lsim#Launch Simulator
