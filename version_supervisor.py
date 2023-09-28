@@ -3,11 +3,12 @@ from subprocess import call
 import argparse
 from datetime import datetime
 from tkinter import Tk, Label, Button, Frame
+import json
 
 
 class VersionSupervisor:
     def __init__(self):
-        self.data = None
+        self.configuration_data = {}
         self.stable, self.beta, self.alfa = 0, 0, 0
         self.stable_max, self.beta_max, self.alfa_max = 9, 99, 999
 
@@ -16,34 +17,37 @@ class VersionSupervisor:
         if usr_input.lower() in ("y", "yes", "yeah", "yep"):
             self.read_version()
             usr_input = ''
-            if len(self.data) > 0:
-                while usr_input not in ('s', 'b', 'a'):
-                    usr_input = input(
-                        "Select release type (s - stable, b - beta, a - alfa) [abort for cancellation]\n?")
-                    if usr_input == 'abort':
-                        exit()
+            while usr_input not in ('s', 'b', 'a'):
+                usr_input = input(
+                    "Select release type (s - stable, b - beta, a - alfa) [abort for cancellation]\n?")
+                if usr_input == "abort":
+                    exit()
             self.count_version(usr_input)
             self.update_version()
 
     def run_gui(self):
-        vsgui = GUI()
-        vsgui.run(self)
+        vsgui = GUI(self)
+        vsgui.run()
         exit()
 
     def read_version(self):
-        self.data = {"version": "0.00.000", "release_date": "not defined"}
         try:
-            with open("version_status", "r") as version_data:
-                for line in version_data:
-                    split_line = line.strip().split("#", 1)
-                    self.data[split_line[0]] = split_line[1]
-                version_data.close()
+            with open("config_data.json", "r") as version_data:
+                try:
+                    self.configuration_data = json.load(version_data)
+                    if 'version' not in self.configuration_data:
+                        self.configuration_data['version'] = f"0.00.000"
+                    if 'release_date' not in self.configuration_data:
+                        self.configuration_data['release_version'] = None
+                except json.JSONDecodeError:
+                    print("config_data.json is corrupted")
+                    exit(3)
         except FileNotFoundError:
             pass
 
     def count_version(self, user_selection):
         if user_selection in ('s', 'b', 'a'):
-            split_line = self.data['version'].strip().split(".")
+            split_line = self.configuration_data['version'].strip().split('.')
             self.stable, self.beta, self.alfa = int(split_line[0]), int(split_line[1]), int(split_line[2])
             if user_selection == 'a':
                 if self.alfa < self.alfa_max:
@@ -67,17 +71,17 @@ class VersionSupervisor:
                     self.stable, self.beta, self.alfa = 0, 0, 0
 
     def update_version(self):
-        version_data = open("version_status", "w")
-        version_data.write(f"version#{self.stable:1n}.{self.beta:02n}.{self.alfa:003n}\n")
-        now = datetime.now()
-        version_data.write(f"release_date#{now.day}/{now.month}/{now.year}")
-        version_data.close()
+        with open("config_data.json", 'w') as version_write:
+            self.configuration_data['version'] = f"{self.stable:1n}.{self.beta:02n}.{self.alfa:003n}"
+            now = datetime.now()
+            self.configuration_data['release_date'] = f"{now.day}/{now.month:02n}/{now.year}"
+            json.dump(self.configuration_data, version_write, indent=4)
 
 
 class GUI(Tk):
-    def __init__(self):
+    def __init__(self, parent):
         super().__init__()
-        self.parent = None
+        self.parent = parent
         self.frame = None
 
     def create_root(self):
@@ -94,9 +98,9 @@ class GUI(Tk):
         self.frame = Frame(self)
         self.frame.label0 = Label(self, text="Does this version of project work?",
                                   bg="#999999", fg="#FFFFFF", font=("Helvetica", 12))
-        self.frame.button0 = Button(self, text="Yes", bg="#AAAAAA", width=5, relief="ridge", cursor='heart',
+        self.frame.button0 = Button(self, text="Yes", bg="#AAAAAA", width=5, relief="ridge", cursor="heart",
                                     fg="#FFFFFF", font=("Helvetica", 10))
-        self.frame.button1 = Button(self, text="No", bg="#AAAAAA", width=5, relief="ridge", cursor='pirate',
+        self.frame.button1 = Button(self, text="No", bg="#AAAAAA", width=5, relief="ridge", cursor="pirate",
                                     fg="#FFFFFF", font=("Helvetica", 10))
         self.frame.label1 = Label(self, text="Current version data:", bg="#999999", fg="#FFFFFF",
                                   font=("Helvetica", 10))
@@ -119,15 +123,14 @@ class GUI(Tk):
         self.frame.button3.place(relx=0.4, rely=0.75, relwidth=0.2)
         self.frame.button4.place(relx=0.7, rely=0.75, relwidth=0.2)
 
-        self.frame.button0.bind('<Button-1>', self.yes_button)
-        self.frame.button1.bind('<Button-1>', self.no_button)
+        self.frame.button0.bind("<Button-1>", self.yes_button)
+        self.frame.button1.bind("<Button-1>", self.no_button)
 
-    def run(self, parent):
-        self.parent = parent
-        self.parent.read_version()
+    def run(self):
         self.create_root()
-        self.frame.label2.config(text=f"version : {self.parent.data['version']}\n"
-                                      f"release date : {self.parent.data['release_date']}")
+        self.parent.read_version()
+        self.frame.label2.config(text=f"version : {self.parent.configuration_data['version']}\n"
+                                      f"release date : {self.parent.configuration_data['release_date']}")
         self.mainloop()
 
     def incr_version(self, v):
