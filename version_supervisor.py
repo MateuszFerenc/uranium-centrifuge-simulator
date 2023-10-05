@@ -1,5 +1,7 @@
 from sys import exit
-from subprocess import call
+from os import environ, name
+from os.path import join
+from subprocess import run
 import argparse
 from datetime import datetime
 from tkinter import Tk, Label, Button, Frame
@@ -149,7 +151,7 @@ class GUI(Tk):
 
 if __name__ == "__main__":
     version = VersionSupervisor()
-    parser = argparse.ArgumentParser(description="Script version supervisor Copyright (2022) Mateusz Ferenc")
+    parser = argparse.ArgumentParser(description=f"Script version supervisor Copyright ({datetime.now().year}) Mateusz Ferenc")
     parser.add_argument("script", type=str,
                         help="python (only) script to execute and supervise version")
     parser.add_argument("-d", "--debug", help="Debug mode (Does not update version, no ask window)",
@@ -158,11 +160,28 @@ if __name__ == "__main__":
                         action="store_true")
     args = parser.parse_args()
 
-    if args.debug:
-        print(call(["python", args.script]))
+    py_exe = join(environ["VIRTUAL_ENV"], "Scripts" if name == "nt" else "bin", "python") if "VIRTUAL_ENV" in environ else "python"
+    status = run([py_exe, args.script], text=True)
+
+    print(f"Stats:\n"\
+          f"\treturn code: {status.returncode}\n")
+    print(f"\tstdout: ", end='')
+    if len(status.stdout):
+        print()
+        for line in status.stdout.splitlines():
+            print('\t' + ' '*8 + line)
     else:
-        if call(["python", args.script]) == 0:
-            if args.cli:
-                version.run_cli()
-            else:
-                version.run_gui()
+        print("None")
+    print(f"\tstderr: ", end='')
+    if len(status.stderr):
+        print()
+        for line in status.stderr.splitlines():
+            print('\t' + ' '*8 + line)
+    else:
+        print("None")
+
+    if not args.debug and status.returncode == 0:
+        if args.cli:
+            version.run_cli()
+        else:
+            version.run_gui()

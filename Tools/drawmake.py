@@ -1,12 +1,12 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
-from lang_support import LangSupport
+from lang_support.lang_support import LangSupportDL
 from os import mkdir, path
 from PIL import Image, ImageDraw
 
 
-languages = LangSupport(path.join("Tools", path.basename(__file__).split(".")[0]),
+languages = LangSupportDL(path.basename(__file__).split(".")[0],
                         ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
 
 

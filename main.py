@@ -5,8 +5,8 @@ from tkinter import messagebox, filedialog
 from os import listdir, path, remove, sep as separator
 from atexit import register as register_exit
 
-from lang_support import LangSupport
-from datalogger import DataLogger
+from lang_support.lang_support import LangSupportDL
+from simpldlogger.datalogger import SimpleDataLogger
 
 try:
     with open("version_status", "r") as version_data:
@@ -21,8 +21,8 @@ except FileNotFoundError:
     sim_version = "Not specified"
     sim_release_date = "Not specified"
 
-languages = LangSupport(path.basename(__file__).split(".")[0], ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
-dl = DataLogger(path.basename(__file__).split(".")[0], 'logs', debug=True)  # "debug=True" remove in future
+languages = LangSupportDL(path.basename(__file__).split(".")[0], ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
+dl = SimpleDataLogger(path.basename(__file__).split(".")[0], 'logs', debug=True)  # "debug=True" remove in future
 
 exit_tasks = {}
 
@@ -115,8 +115,8 @@ class MainContainer(tk.Tk):
         self.filemenu.entryconfigure(index=8, label=languages.get_text('exitfilemenu'))
         self.infomenu.entryconfigure(index=0, label=languages.get_text('versioninfomenu'), command=lambda:
         messagebox.showinfo(title=languages.get_text('versioninfomenu'),
-                            message=f"{languages.get_text('simversion').format(sim_version)}\n"
-                                    f"{languages.get_text('simrelease').format(sim_release_date)}"))
+                            message=f"{languages.get_text('simversion', sim_version)}\n"
+                                    f"{languages.get_text('simrelease', sim_release_date)}"))
         self.infomenu.entryconfigure(index=1, label=languages.get_text('developerinfomenu'), command=lambda:
         messagebox.showinfo(title=languages.get_text('developerinfomenu'),
                             message=languages.get_text('simdev')))
@@ -340,5 +340,5 @@ if __name__ == "__main__":
     register_exit(at_exit)
     main = MainContainer()
     main.mainloop()
-    for inst in DataLogger.instances:
+    for inst in SimpleDataLogger.instances:
         inst.end()
