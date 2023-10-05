@@ -155,33 +155,35 @@ class GUI(Tk):
 if __name__ == "__main__":
     version = VersionSupervisor()
     parser = argparse.ArgumentParser(description=f"Script version supervisor Copyright ({datetime.now().year}) Mateusz Ferenc")
-    parser.add_argument("script", type=str,
-                        help="python (only) script to execute and supervise version")
-    parser.add_argument("-d", "--debug", help="Debug mode (Does not update version, no ask window)",
-                        action="store_true")
-    parser.add_argument("-c", "--cli", help="Command Line Interface mode, no GUI (Default GUI mode)",
-                        action="store_true")
+    parser.add_argument("script", type=str, help="python (only) script to execute and supervise version")
+    parser.add_argument("-d", "--debug", help="Debug mode (Does not update version, no ask window)", action="store_true")
+    parser.add_argument("-c", "--cli", help="Command Line Interface mode, no GUI (Default GUI mode)", action="store_true")
+    parser.add_argument("-p", "--print", help="Print script output directly to stdout", action="store_true")
     args = parser.parse_args()
 
     py_exe = join(environ["VIRTUAL_ENV"], "Scripts" if name == "nt" else "bin", "python") if "VIRTUAL_ENV" in environ else "python"
-    status = run([py_exe, args.script], text=True, capture_output=True)
+    status = run([py_exe, args.script], text=True, capture_output=not args.print)
 
     print(f"Stats:\n"\
           f"\treturn code: {status.returncode}\n")
-    print(f"\tstdout: ", end='')
-    if len(status.stdout):
-        print()
-        for line in status.stdout.splitlines():
-            print('\t' + ' '*8 + line)
+    if not args.print:
+        print(f"\tstdout: ", end='')
+        if len(status.stdout):
+            print()
+            for line in status.stdout.splitlines():
+                print('\t' + ' '*8 + line)
+        else:
+            print("None")
+        print(f"\tstderr: ", end='')
+        if len(status.stderr):
+            print()
+            for line in status.stderr.splitlines():
+                print('\t' + ' '*8 + line)
+        else:
+            print("None")
     else:
-        print("None")
-    print(f"\tstderr: ", end='')
-    if len(status.stderr):
-        print()
-        for line in status.stderr.splitlines():
-            print('\t' + ' '*8 + line)
-    else:
-        print("None")
+        print("\tstdout: not captured\n"\
+              "\tstdeer: not captured")
 
     if not args.debug and status.returncode == 0:
         if args.cli:
