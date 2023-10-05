@@ -4,28 +4,31 @@ import tkinter.ttk as ttk
 from tkinter import messagebox, filedialog
 from os import listdir, path, remove, sep as separator
 from atexit import register as register_exit
+import json
 
 from lang_support.lang_support import LangSupportDL
 from simpldlogger.datalogger import SimpleDataLogger
 
-try:
-    with open("version_status", "r") as version_data:
-        data = {}
-        for line in version_data:
-            split_line = line.strip().split("#", 1)
-            data[split_line[0]] = split_line[1]
-        version_data.close()
-        sim_version = data['version']
-        sim_release_date = data['release_date']
-except FileNotFoundError:
-    sim_version = "Not specified"
-    sim_release_date = "Not specified"
 
 languages = LangSupportDL(path.basename(__file__).split(".")[0], ignore_file_error=True, ignore_key_error=True, ignore_dict_error=True)
 dl = SimpleDataLogger(path.basename(__file__).split(".")[0], 'logs', debug=True)  # "debug=True" remove in future
 
 exit_tasks = {}
+configuration_data = {}
 
+try:
+    with open("config_data.json", "r") as config:
+        try:
+            configuration_data = json.load(config)
+        except json.JSONDecodeError:
+            dl.log("config_data.json is corrupted", log_type=3)
+            exit(3)
+        else:
+            dl.log("Data from config_data.json, successfully read")
+except FileNotFoundError:
+    dl.log("config_data.json file not found! New config_data file will be created.", log_type=1)
+    configuration_data['version'] = "Not specified"
+    configuration_data['release_date'] = "Not specified"
 
 class Cons:
     sim_background_color = "#AAAAAA"
@@ -115,8 +118,8 @@ class MainContainer(tk.Tk):
         self.filemenu.entryconfigure(index=8, label=languages.get_text('exitfilemenu'))
         self.infomenu.entryconfigure(index=0, label=languages.get_text('versioninfomenu'), command=lambda:
         messagebox.showinfo(title=languages.get_text('versioninfomenu'),
-                            message=f"{languages.get_text('simversion', sim_version)}\n"
-                                    f"{languages.get_text('simrelease', sim_release_date)}"))
+                            message=f"{languages.get_text('simversion', configuration_data['version'])}\n"
+                                    f"{languages.get_text('simrelease', configuration_data['release_date'])}"))
         self.infomenu.entryconfigure(index=1, label=languages.get_text('developerinfomenu'), command=lambda:
         messagebox.showinfo(title=languages.get_text('developerinfomenu'),
                             message=languages.get_text('simdev')))
@@ -329,6 +332,8 @@ class ChartsWindow(ttk.Frame):
 
 
 def at_exit():
+    with open("config_data.json", "w") as config_data_write:
+        json.dump(configuration_data, config_data_write, indent=4)
     for file, task in exit_tasks.items():
         if task == 'remove-file':
             remove(file)
